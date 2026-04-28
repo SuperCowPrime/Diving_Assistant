@@ -3,7 +3,32 @@ const gearList = document.getElementById('gear-list');
 const gearCount = document.getElementById('gear-count');
 const searchInput = document.getElementById('search');
 
-const SERVICE_INTERVAL_DAYS = 120;
+const SERVICE_INTERVALS = {
+  'BCD':                   { days: 365,  label: 'Annual service' },
+  'Regulator':             { days: 365,  label: 'Annual service' },
+  'Octopus':               { days: 365,  label: 'Annual service' },
+  'Tank':                  { days: 365,  label: 'Annual visual inspection' },
+  'Wetsuit':               { days: 730,  label: 'Every 2 years' },
+  'Drysuit':               { days: 365,  label: 'Annual service' },
+  'Hood':                  { days: 730,  label: 'Every 2 years' },
+  'Gloves':                { days: 730,  label: 'Every 2 years' },
+  'Boots':                 { days: 730,  label: 'Every 2 years' },
+  'Mask':                  { days: 730,  label: 'Every 2 years' },
+  'Fins':                  { days: 730,  label: 'Every 2 years' },
+  'Compass':               { days: 730,  label: 'Every 2 years' },
+  'Dive Computer':         { days: 365,  label: 'Annual service' },
+  'Dive Light':            { days: 365,  label: 'Annual O-ring service' },
+  'Surface Marker Buoy':   { days: 730,  label: 'Every 2 years' },
+  'Knife/Cutter':          { days: 180,  label: 'Every 6 months' },
+  'Weight System':         { days: 365,  label: 'Annual inspection' },
+  'Underwater Camera':     { days: 365,  label: 'Annual O-ring service' },
+  'Dive Bag':              { days: 730,  label: 'Every 2 years' },
+  'Other':                 { days: 365,  label: 'Annual check' },
+};
+
+function serviceIntervalFor(category) {
+  return SERVICE_INTERVALS[category] || SERVICE_INTERVALS['Other'];
+}
 
 function dateInDays(days) {
   const d = new Date();
@@ -12,9 +37,13 @@ function dateInDays(days) {
 }
 
 function prefillNextService() {
+  const category = document.getElementById('category').value;
   const field = document.getElementById('next-service');
-  if (!field.value) field.value = dateInDays(SERVICE_INTERVAL_DAYS);
+  const interval = serviceIntervalFor(category);
+  field.value = dateInDays(interval.days);
 }
+
+document.getElementById('category').addEventListener('change', prefillNextService);
 
 let gear = JSON.parse(localStorage.getItem('diveGear') || '[]');
 
@@ -26,12 +55,13 @@ function conditionClass(condition) {
   return 'condition-' + condition.replace(/\s+/g, '-');
 }
 
-function serviceStatus(nextService) {
+function serviceStatus(nextService, category) {
   if (!nextService) return '';
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const due = new Date(nextService);
   const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+  const intervalLabel = serviceIntervalFor(category).label;
 
   let cls, icon, label;
   if (diff < 0) {
@@ -55,7 +85,7 @@ function serviceStatus(nextService) {
   return `<div class="${cls}">
     <span class="counter-icon">${icon}</span>
     <span class="counter-label">${label}</span>
-    <span class="counter-date">${formatDate(nextService)}</span>
+    <span class="counter-date">${formatDate(nextService)} · ${intervalLabel}</span>
   </div>`;
 }
 
@@ -85,7 +115,7 @@ function renderGear(items) {
           ${item.lastService ? `<span>🔧 Serviced: ${formatDate(item.lastService)}</span>` : ''}
           ${item.serial ? `<span>🔢 S/N: ${item.serial}</span>` : ''}
         </div>
-        ${item.nextService ? `<div class="gear-item-meta">${serviceStatus(item.nextService)}</div>` : ''}
+        ${item.nextService ? `<div class="gear-item-meta">${serviceStatus(item.nextService, item.category)}</div>` : ''}
         ${item.notes ? `<div class="gear-item-notes">${item.notes}</div>` : ''}
       </div>
       <div class="gear-item-actions">
@@ -125,7 +155,7 @@ form.addEventListener('submit', e => {
     purchaseDate: data.get('purchase-date'),
     condition:    data.get('condition'),
     lastService:  data.get('last-service'),
-    nextService:  data.get('next-service') || dateInDays(SERVICE_INTERVAL_DAYS),
+    nextService:  data.get('next-service') || dateInDays(serviceIntervalFor(data.get('category')).days),
     serial:       data.get('serial').trim(),
     notes:        data.get('notes').trim(),
   };
@@ -134,10 +164,9 @@ form.addEventListener('submit', e => {
   saveGear();
   updateUI();
   form.reset();
-  prefillNextService();
+  document.getElementById('next-service').value = '';
 });
 
 searchInput.addEventListener('input', updateUI);
 
-prefillNextService();
 updateUI();
