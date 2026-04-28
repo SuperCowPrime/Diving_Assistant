@@ -72,7 +72,7 @@ function renderGear(items) {
   }
 
   gearList.innerHTML = items.map(item => `
-    <div class="gear-item" data-id="${item.id}">
+    <div class="gear-item" data-id="${item.id}" onclick="openModal('${item.id}')" title="Click for maintenance guide">
       <div class="gear-item-main">
         <div class="gear-item-title">
           ${item.name}
