@@ -210,6 +210,7 @@ textarea { resize: vertical; }
 }
 
 .btn-icon:hover { background: var(--blue-pale); }
+.btn-icon.service:hover { background: #d5f5e3; }
 .btn-icon.delete:hover { background: #fde8e8; }
 
 /* Condition pill */

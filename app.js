@@ -128,7 +128,8 @@ function renderGear(items) {
         ${item.nextService ? `<div class="gear-item-meta">${serviceStatus(item.nextService, item.category)}</div>` : ''}
         ${item.notes ? `<div class="gear-item-notes">${item.notes}</div>` : ''}
       </div>
-      <div class="gear-item-actions">
+      <div class="gear-item-actions" onclick="event.stopPropagation()">
+        <button class="btn-icon service" title="Mark as serviced today" onclick="markServiced('${item.id}')">✅</button>
         <button class="btn-icon delete" title="Delete" onclick="deleteItem('${item.id}')">🗑</button>
       </div>
     </div>
@@ -144,6 +145,17 @@ function updateUI() {
   );
   gearCount.textContent = gear.length;
   renderGear(filtered);
+}
+
+function markServiced(id) {
+  const item = gear.find(g => g.id === id);
+  if (!item) return;
+  const today = new Date().toISOString().split('T')[0];
+  item.lastService = today;
+  item.nextService = calcNextService(item.category, today, item.purchaseDate);
+  if (item.condition === 'Needs Service') item.condition = 'Good';
+  saveGear();
+  updateUI();
 }
 
 function deleteItem(id) {
