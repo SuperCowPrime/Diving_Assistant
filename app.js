@@ -30,20 +30,30 @@ function serviceIntervalFor(category) {
   return SERVICE_INTERVALS[category] || SERVICE_INTERVALS['Other'];
 }
 
-function dateInDays(days) {
-  const d = new Date();
+function addDaysToDate(dateStr, days) {
+  const d = new Date(dateStr);
   d.setDate(d.getDate() + days);
   return d.toISOString().split('T')[0];
 }
 
+function calcNextService(category, lastService, purchaseDate) {
+  const { days } = serviceIntervalFor(category);
+  const base = lastService || purchaseDate;
+  if (base) return addDaysToDate(base, days);
+  const today = new Date().toISOString().split('T')[0];
+  return addDaysToDate(today, days);
+}
+
 function prefillNextService() {
-  const category = document.getElementById('category').value;
-  const field = document.getElementById('next-service');
-  const interval = serviceIntervalFor(category);
-  field.value = dateInDays(interval.days);
+  const category     = document.getElementById('category').value;
+  const lastService  = document.getElementById('last-service').value;
+  const purchaseDate = document.getElementById('purchase-date').value;
+  document.getElementById('next-service').value = calcNextService(category, lastService, purchaseDate);
 }
 
 document.getElementById('category').addEventListener('change', prefillNextService);
+document.getElementById('last-service').addEventListener('change', prefillNextService);
+document.getElementById('purchase-date').addEventListener('change', prefillNextService);
 
 let gear = JSON.parse(localStorage.getItem('diveGear') || '[]');
 
@@ -155,7 +165,7 @@ form.addEventListener('submit', e => {
     purchaseDate: data.get('purchase-date'),
     condition:    data.get('condition'),
     lastService:  data.get('last-service'),
-    nextService:  data.get('next-service') || dateInDays(serviceIntervalFor(data.get('category')).days),
+    nextService:  data.get('next-service') || calcNextService(data.get('category'), data.get('last-service'), data.get('purchase-date')),
     serial:       data.get('serial').trim(),
     notes:        data.get('notes').trim(),
   };
