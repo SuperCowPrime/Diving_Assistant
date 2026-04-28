@@ -227,9 +227,26 @@ textarea { resize: vertical; }
 .condition-Fair      { background: #fef9e7; color: #9a7d0a; }
 .condition-Needs-Service { background: #fde8e8; color: #c0392b; }
 
-/* Service warning */
-.service-warn { color: var(--warn); font-weight: 600; }
-.service-overdue { color: var(--danger); font-weight: 600; }
+/* Service counter */
+.service-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+.service-counter.ok      { background: #d6eaf8; color: #1a5276; }
+.service-counter.soon    { background: #fef5e7; color: #9a5d0a; }
+.service-counter.overdue { background: #fde8e8; color: #c0392b; }
+
+.counter-icon  { font-size: .9rem; }
+.counter-label { font-weight: 700; }
+.counter-date  { opacity: .75; font-weight: 400; }
+.counter-date::before { content: '·'; margin-right: 4px; }
 
 @media (max-width: 580px) {
   .form-row { grid-template-columns: 1fr; }

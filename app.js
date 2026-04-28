@@ -3,6 +3,19 @@ const gearList = document.getElementById('gear-list');
 const gearCount = document.getElementById('gear-count');
 const searchInput = document.getElementById('search');
 
+const SERVICE_INTERVAL_DAYS = 120;
+
+function dateInDays(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+function prefillNextService() {
+  const field = document.getElementById('next-service');
+  if (!field.value) field.value = dateInDays(SERVICE_INTERVAL_DAYS);
+}
+
 let gear = JSON.parse(localStorage.getItem('diveGear') || '[]');
 
 function saveGear() {
@@ -16,11 +29,34 @@ function conditionClass(condition) {
 function serviceStatus(nextService) {
   if (!nextService) return '';
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const due = new Date(nextService);
   const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-  if (diff < 0) return `<span class="service-overdue">⚠ Service overdue by ${Math.abs(diff)} days</span>`;
-  if (diff <= 30) return `<span class="service-warn">⏰ Service due in ${diff} days</span>`;
-  return `<span>Next service: ${formatDate(nextService)}</span>`;
+
+  let cls, icon, label;
+  if (diff < 0) {
+    cls = 'service-counter overdue';
+    icon = '⚠';
+    label = `Overdue by ${Math.abs(diff)} day${Math.abs(diff) !== 1 ? 's' : ''}`;
+  } else if (diff === 0) {
+    cls = 'service-counter overdue';
+    icon = '⚠';
+    label = 'Due today!';
+  } else if (diff <= 30) {
+    cls = 'service-counter soon';
+    icon = '⏰';
+    label = `${diff} day${diff !== 1 ? 's' : ''} until service`;
+  } else {
+    cls = 'service-counter ok';
+    icon = '🔧';
+    label = `${diff} days until service`;
+  }
+
+  return `<div class="${cls}">
+    <span class="counter-icon">${icon}</span>
+    <span class="counter-label">${label}</span>
+    <span class="counter-date">${formatDate(nextService)}</span>
+  </div>`;
 }
 
 function formatDate(dateStr) {
@@ -89,7 +125,7 @@ form.addEventListener('submit', e => {
     purchaseDate: data.get('purchase-date'),
     condition:    data.get('condition'),
     lastService:  data.get('last-service'),
-    nextService:  data.get('next-service'),
+    nextService:  data.get('next-service') || dateInDays(SERVICE_INTERVAL_DAYS),
     serial:       data.get('serial').trim(),
     notes:        data.get('notes').trim(),
   };
@@ -98,8 +134,10 @@ form.addEventListener('submit', e => {
   saveGear();
   updateUI();
   form.reset();
+  prefillNextService();
 });
 
 searchInput.addEventListener('input', updateUI);
 
+prefillNextService();
 updateUI();
