@@ -55,10 +55,20 @@ document.getElementById('category').addEventListener('change', prefillNextServic
 document.getElementById('last-service').addEventListener('change', prefillNextService);
 document.getElementById('purchase-date').addEventListener('change', prefillNextService);
 
-let gear = JSON.parse(localStorage.getItem('diveGear') || '[]');
+let gear = [];
+
+function gearKey() {
+  return 'diveGear_' + (getCurrentUser() || 'guest');
+}
 
 function saveGear() {
-  localStorage.setItem('diveGear', JSON.stringify(gear));
+  localStorage.setItem(gearKey(), JSON.stringify(gear));
+}
+
+function initGear() {
+  gear = JSON.parse(localStorage.getItem(gearKey()) || '[]');
+  searchInput.value = '';
+  updateUI();
 }
 
 function escapeHTML(str) {
@@ -200,5 +210,3 @@ form.addEventListener('submit', e => {
 });
 
 searchInput.addEventListener('input', updateUI);
-
-updateUI();
