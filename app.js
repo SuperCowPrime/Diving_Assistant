@@ -61,6 +61,15 @@ function saveGear() {
   localStorage.setItem('diveGear', JSON.stringify(gear));
 }
 
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function conditionClass(condition) {
   return 'condition-' + condition.replace(/\s+/g, '-');
 }
@@ -73,7 +82,9 @@ function serviceStatus(nextService, category) {
   const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
   const intervalLabel = serviceIntervalFor(category).label;
 
-  let cls, icon, label;
+  let cls;
+  let icon;
+  let label;
   if (diff < 0) {
     cls = 'service-counter overdue';
     icon = '⚠';
@@ -115,20 +126,20 @@ function renderGear(items) {
     <div class="gear-item" data-id="${item.id}" onclick="openModal('${item.id}')" title="Click for maintenance guide">
       <div class="gear-item-main">
         <div class="gear-item-title">
-          ${item.name}
-          <span class="condition-pill ${conditionClass(item.condition)}">${item.condition}</span>
+          ${escapeHTML(item.name)}
+          <span class="condition-pill ${conditionClass(item.condition)}">${escapeHTML(item.condition)}</span>
         </div>
         <div class="gear-item-meta">
-          <span>📂 ${item.category}</span>
-          ${item.brand ? `<span>🏷 ${item.brand}</span>` : ''}
+          <span>📂 ${escapeHTML(item.category)}</span>
+          ${item.brand ? `<span>🏷 ${escapeHTML(item.brand)}</span>` : ''}
           ${item.purchaseDate ? `<span>🛒 Bought: ${formatDate(item.purchaseDate)}</span>` : ''}
           ${item.lastService ? `<span>🔧 Serviced: ${formatDate(item.lastService)}</span>` : ''}
-          ${item.serial ? `<span>🔢 S/N: ${item.serial}</span>` : ''}
+          ${item.serial ? `<span>🔢 S/N: ${escapeHTML(item.serial)}</span>` : ''}
         </div>
         ${item.nextService ? `<div class="gear-item-meta">${serviceStatus(item.nextService, item.category)}</div>` : ''}
-        ${item.notes ? `<div class="gear-item-notes">${item.notes}</div>` : ''}
+        ${item.notes ? `<div class="gear-item-notes">${escapeHTML(item.notes)}</div>` : ''}
       </div>
-      <div class="gear-item-actions" onclick="event.stopPropagation()">
+      <div class="gear-item-actions" onclick="(event).stopPropagation()">
         <button class="btn-icon service" title="Mark as serviced today" onclick="markServiced('${item.id}')">✅</button>
         <button class="btn-icon delete" title="Delete" onclick="deleteItem('${item.id}')">🗑</button>
       </div>
@@ -186,7 +197,6 @@ form.addEventListener('submit', e => {
   saveGear();
   updateUI();
   form.reset();
-  document.getElementById('next-service').value = '';
 });
 
 searchInput.addEventListener('input', updateUI);

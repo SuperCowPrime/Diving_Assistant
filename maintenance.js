@@ -203,7 +203,7 @@ const MAINTENANCE = {
 };
 
 function openModal(id) {
-  const item = gear.find(g => g.id === id);
+  const item = (typeof gear !== 'undefined' ? gear : []).find(g => g.id === id);
   if (!item) return;
 
   const info = MAINTENANCE[item.category] || MAINTENANCE['Other'];
