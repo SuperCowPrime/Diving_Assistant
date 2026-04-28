@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dive Gear Manager</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🤿 Dive Gear Manager</h1>
+    <p class="subtitle">Track and manage your scuba equipment</p>
+  </header>
+
+  <main>
+    <!-- Add Equipment Form -->
+    <section class="card" id="add-section">
+      <h2>Add Equipment</h2>
+      <form id="gear-form">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="category">Category <span class="required">*</span></label>
+            <select id="category" name="category" required>
+              <option value="">-- Select category --</option>
+              <optgroup label="Breathing">
+                <option value="BCD">BCD (Buoyancy Control Device)</option>
+                <option value="Regulator">Regulator</option>
+                <option value="Octopus">Octopus / Spare Regulator</option>
+                <option value="Tank">Tank / Cylinder</option>
+              </optgroup>
+              <optgroup label="Exposure Protection">
+                <option value="Wetsuit">Wetsuit</option>
+                <option value="Drysuit">Drysuit</option>
+                <option value="Hood">Hood</option>
+                <option value="Gloves">Gloves</option>
+                <option value="Boots">Boots</option>
+              </optgroup>
+              <optgroup label="Vision & Navigation">
+                <option value="Mask">Mask</option>
+                <option value="Fins">Fins</option>
+                <option value="Compass">Compass</option>
+                <option value="Dive Computer">Dive Computer</option>
+              </optgroup>
+              <optgroup label="Accessories">
+                <option value="Dive Light">Dive Light</option>
+                <option value="Surface Marker Buoy">Surface Marker Buoy (SMB)</option>
+                <option value="Knife/Cutter">Knife / Cutter</option>
+                <option value="Weight System">Weight System</option>
+                <option value="Underwater Camera">Underwater Camera</option>
+                <option value="Dive Bag">Dive Bag</option>
+              </optgroup>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="item-name">Item Name / Model <span class="required">*</span></label>
+            <input type="text" id="item-name" name="item-name" placeholder="e.g. Scubapro Hydros Pro" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="brand">Brand</label>
+            <input type="text" id="brand" name="brand" placeholder="e.g. Scubapro, Mares, Cressi" />
+          </div>
+
+          <div class="form-group">
+            <label for="purchase-date">Purchase Date</label>
+            <input type="date" id="purchase-date" name="purchase-date" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="condition">Condition <span class="required">*</span></label>
+            <select id="condition" name="condition" required>
+              <option value="">-- Select condition --</option>
+              <option value="New">New</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Needs Service">Needs Service</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="last-service">Last Service Date</label>
+            <input type="date" id="last-service" name="last-service" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="next-service">Next Service Due</label>
+            <input type="date" id="next-service" name="next-service" />
+          </div>
+
+          <div class="form-group">
+            <label for="serial">Serial Number</label>
+            <input type="text" id="serial" name="serial" placeholder="Optional" />
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" rows="3" placeholder="Any additional info about this item..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Add to Gear List</button>
+          <button type="reset" class="btn-secondary">Clear</button>
+        </div>
+
+      </form>
+    </section>
+
+    <!-- Gear List -->
+    <section class="card" id="gear-section">
+      <div class="section-header">
+        <h2>My Gear <span id="gear-count" class="badge">0</span></h2>
+        <input type="text" id="search" placeholder="Search gear..." class="search-input" />
+      </div>
+
+      <div id="gear-list" class="gear-list">
+        <p class="empty-state">No equipment added yet. Use the form above to add your first item.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
