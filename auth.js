@@ -69,6 +69,12 @@ function switchTab(tab) {
   document.getElementById('register-tab').classList.toggle('active', tab === 'register');
   document.getElementById('login-form-section').classList.toggle('hidden', tab !== 'login');
   document.getElementById('register-form-section').classList.toggle('hidden', tab !== 'register');
+  // Clear errors on the tab being switched to
+  if (tab === 'login') document.getElementById('login-error').textContent = '';
+  if (tab === 'register') {
+    document.getElementById('register-error').textContent = '';
+    document.getElementById('register-success').textContent = '';
+  }
 }
 
 document.getElementById('login-tab').addEventListener('click', () => switchTab('login'));
@@ -121,9 +127,12 @@ document.getElementById('register-form').addEventListener('submit', async e => {
     return;
   }
   document.getElementById('register-form').reset();
-  successEl.textContent = 'Account created! You can now log in.';
-  switchTab('login');
-  document.getElementById('login-username').value = username;
+  successEl.textContent = '✅ Account created! You can now log in.';
+  setTimeout(() => {
+    switchTab('login');
+    document.getElementById('login-username').value = username;
+    document.getElementById('login-password').value = '';
+  }, 1500);
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => {
