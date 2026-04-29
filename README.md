@@ -7,6 +7,7 @@ No installation or server required — just open `index.html` in any browser.
 
 ## Features
 
+- **User accounts** — register and log in with a username and password; each user's gear is stored separately
 - **Add equipment** with fields for category, brand, model, serial number, purchase date, condition, and notes
 - **Equipment categories** covering Breathing, Exposure Protection, Vision & Navigation, and Accessories
 - **Condition tracking** — New, Excellent, Good, Fair, or Needs Service
@@ -51,15 +52,25 @@ cd Diving_Assistant
 
 ```
 Diving_Assistant/
-├── index.html      # App layout and equipment form
+├── index.html      # App layout, auth screen, and equipment form
 ├── style.css       # Ocean-themed styles
-├── app.js          # Logic, localStorage, service countdown
+├── auth.css        # Login and register screen styles
+├── app.js          # Gear logic, localStorage, service countdown
+├── auth.js         # User registration, login, session management
 └── maintenance.js  # Per-category maintenance instructions
 ```
 
 ---
 
 ## Changelog
+
+### v0.6 — User Accounts & Login
+- Register with username (min 3 chars) and password (min 6 chars)
+- Passwords hashed with SHA-256 via the Web Crypto API before storage
+- Each user's gear stored separately — fully isolated between accounts
+- Session kept in `sessionStorage` and cleared on browser close
+- Logout button in the header
+- Bug fixes: stale error messages cleared on tab switch, success message visible for 1.5s before redirecting to login, password field cleared after registration
 
 ### v0.5 — Mark as Serviced
 - Added ✅ button on each gear card to confirm a service was done
