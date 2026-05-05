@@ -73,6 +73,19 @@
     </header>
 
     <main>
+
+      <!-- Profiles -->
+      <section class="card" id="profiles-section">
+        <h2>Profiles</h2>
+        <div id="profile-chips" class="profile-chips"></div>
+        <div class="profile-add-row">
+          <input type="text" id="new-profile-name" placeholder="New profile name…" maxlength="30"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();handleAddProfile();}" />
+          <button class="btn-primary" onclick="handleAddProfile()">+ Add Profile</button>
+        </div>
+        <p class="profile-error" id="profile-error"></p>
+      </section>
+
       <!-- Add Equipment Form -->
       <section class="card" id="add-section">
         <h2>Add Equipment</h2>
@@ -168,6 +181,13 @@
             <textarea id="notes" name="notes" rows="3" placeholder="Any additional info about this item..."></textarea>
           </div>
 
+          <div class="form-group full-width">
+            <label for="profile-select">Assign to Profile</label>
+            <select id="profile-select" name="profile-id">
+              <option value="">— No profile —</option>
+            </select>
+          </div>
+
           <div class="form-actions">
             <button type="submit" class="btn-primary">Add to Gear List</button>
             <button type="reset" class="btn-secondary">Clear</button>
@@ -182,6 +202,7 @@
           <h2>My Gear <span id="gear-count" class="badge">0</span></h2>
           <input type="text" id="search" placeholder="Search gear..." class="search-input" />
         </div>
+        <div id="profile-filter" class="profile-filter"></div>
 
         <div id="gear-list" class="gear-list">
           <p class="empty-state">No equipment added yet. Use the form above to add your first item.</p>

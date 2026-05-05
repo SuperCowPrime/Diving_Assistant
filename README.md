@@ -8,7 +8,9 @@ No installation or server required — just open `index.html` in any browser.
 ## Features
 
 - **User accounts** — register and log in with a username and password; each user's gear is stored separately
-- **Add equipment** with fields for category, brand, model, serial number, purchase date, condition, and notes
+- **Profiles** — each user can create multiple named profiles (e.g. "Recreational", "Tech", "Photography"); equipment is assigned to a profile when added
+- **Profile filter** — toggle one, multiple, or all profiles to filter the gear list; an "Unassigned" option groups gear not linked to any profile
+- **Add equipment** with fields for category, brand, model, serial number, purchase date, condition, profile, and notes
 - **Equipment categories** covering Breathing, Exposure Protection, Vision & Navigation, and Accessories
 - **Condition tracking** — New, Excellent, Good, Fair, or Needs Service
 - **Per-category service countdown** — each item gets a smart service due date based on its type, calculated from the last service date (or purchase date if never serviced):
@@ -18,7 +20,7 @@ No installation or server required — just open `index.html` in any browser.
 - **Mark as Serviced** — one click resets the countdown from today and clears a "Needs Service" condition
 - **Maintenance guide** — click any gear card to open a step-by-step maintenance guide tailored to that equipment type
 - **Search** — filter your gear list by name, category, or brand
-- **Persistent storage** — gear list is saved in `localStorage` and survives page refreshes
+- **Persistent storage** — gear list and profiles saved in `localStorage` and survive page refreshes
 
 ---
 
@@ -63,6 +65,15 @@ Diving_Assistant/
 ---
 
 ## Changelog
+
+### v0.7 — Profiles
+- Each registered user can create multiple named profiles (e.g. "Recreational", "Tech Diving", "Photography")
+- Profiles are isolated per user — one user's profiles never appear for another
+- Equipment can be assigned to a profile when added via the "Assign to Profile" dropdown
+- Profile filter bar above the gear list: click **All** to see everything, or toggle individual profiles; multi-select is supported
+- An **Unassigned** filter button appears automatically when any gear has no profile
+- Profile badge shown on each gear card so you can identify which kit it belongs to at a glance
+- Deleting a profile unassigns its gear rather than deleting it
 
 ### v0.6 — User Accounts & Login
 - Register with username (min 3 chars) and password (min 6 chars)

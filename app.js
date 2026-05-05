@@ -55,7 +55,10 @@ document.getElementById('category').addEventListener('change', prefillNextServic
 document.getElementById('last-service').addEventListener('change', prefillNextService);
 document.getElementById('purchase-date').addEventListener('change', prefillNextService);
 
+// ── Gear storage ──────────────────────────────────────────────────────────────
+
 let gear = [];
+let activeProfileFilter = new Set(); // empty = show all
 
 function gearKey() {
   return 'diveGear_' + (getCurrentUser() || 'guest');
@@ -67,9 +70,127 @@ function saveGear() {
 
 function initGear() {
   gear = JSON.parse(localStorage.getItem(gearKey()) || '[]');
+  activeProfileFilter.clear();
   searchInput.value = '';
+  renderProfileManager();
   updateUI();
 }
+
+// ── Profiles ──────────────────────────────────────────────────────────────────
+
+function profilesKey() {
+  return 'diveProfiles_' + (getCurrentUser() || 'guest');
+}
+
+function getProfiles() {
+  return JSON.parse(localStorage.getItem(profilesKey()) || '[]');
+}
+
+function saveProfiles(profiles) {
+  localStorage.setItem(profilesKey(), JSON.stringify(profiles));
+}
+
+function createProfile(name) {
+  const profiles = getProfiles();
+  const trimmed = name.trim();
+  if (!trimmed) return { ok: false, error: 'Profile name cannot be empty.' };
+  if (profiles.some(p => p.name.toLowerCase() === trimmed.toLowerCase()))
+    return { ok: false, error: 'A profile with that name already exists.' };
+  profiles.push({ id: crypto.randomUUID(), name: trimmed });
+  saveProfiles(profiles);
+  return { ok: true };
+}
+
+function deleteProfile(id) {
+  let profiles = getProfiles();
+  profiles = profiles.filter(p => p.id !== id);
+  saveProfiles(profiles);
+  activeProfileFilter.delete(id);
+  gear.forEach(item => { if (item.profileId === id) item.profileId = null; });
+  saveGear();
+}
+
+function getProfileName(profileId) {
+  if (!profileId) return null;
+  const p = getProfiles().find(p => p.id === profileId);
+  return p ? p.name : null;
+}
+
+function handleAddProfile() {
+  const input = document.getElementById('new-profile-name');
+  const errorEl = document.getElementById('profile-error');
+  const result = createProfile(input.value);
+  if (!result.ok) { errorEl.textContent = result.error; return; }
+  errorEl.textContent = '';
+  input.value = '';
+  renderProfileManager();
+}
+
+function handleDeleteProfile(id) {
+  const profiles = getProfiles();
+  const profile = profiles.find(p => p.id === id);
+  const count = gear.filter(g => g.profileId === id).length;
+  let msg = `Delete profile "${profile?.name}"?`;
+  if (count > 0) msg += ` ${count} item(s) will become unassigned.`;
+  if (!confirm(msg)) return;
+  deleteProfile(id);
+  renderProfileManager();
+  updateUI();
+}
+
+function renderProfileManager() {
+  const profiles = getProfiles();
+  const list = document.getElementById('profile-chips');
+  if (!list) return;
+  list.innerHTML = profiles.length
+    ? profiles.map(p => `
+        <span class="profile-chip">
+          ${escapeHTML(p.name)}
+          <button class="profile-chip-delete" onclick="handleDeleteProfile('${p.id}')" title="Delete">&times;</button>
+        </span>`).join('')
+    : '<span class="no-profiles">No profiles yet.</span>';
+  updateProfileSelect();
+  renderProfileFilter();
+}
+
+function updateProfileSelect() {
+  const select = document.getElementById('profile-select');
+  if (!select) return;
+  const profiles = getProfiles();
+  const current = select.value;
+  select.innerHTML = '<option value="">— No profile —</option>' +
+    profiles.map(p => `<option value="${p.id}"${p.id === current ? ' selected' : ''}>${escapeHTML(p.name)}</option>`).join('');
+}
+
+function renderProfileFilter() {
+  const container = document.getElementById('profile-filter');
+  if (!container) return;
+  const profiles = getProfiles();
+  if (!profiles.length) { container.innerHTML = ''; return; }
+
+  const allActive = activeProfileFilter.size === 0;
+  let html = `<button class="profile-filter-btn${allActive ? ' active' : ''}" onclick="setProfileFilter('all')">All</button>`;
+  html += profiles.map(p => `
+    <button class="profile-filter-btn${activeProfileFilter.has(p.id) ? ' active' : ''}" onclick="setProfileFilter('${p.id}')">
+      ${escapeHTML(p.name)}
+    </button>`).join('');
+  if (gear.some(g => !g.profileId)) {
+    html += `<button class="profile-filter-btn${activeProfileFilter.has('__none__') ? ' active' : ''}" onclick="setProfileFilter('__none__')">Unassigned</button>`;
+  }
+  container.innerHTML = html;
+}
+
+function setProfileFilter(id) {
+  if (id === 'all') {
+    activeProfileFilter.clear();
+  } else {
+    activeProfileFilter.has(id) ? activeProfileFilter.delete(id) : activeProfileFilter.add(id);
+  }
+  renderProfileFilter();
+  updateUI();
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function escapeHTML(str) {
   return String(str)
@@ -126,18 +247,23 @@ function formatDate(dateStr) {
   return `${d}/${m}/${y}`;
 }
 
+// ── Render ────────────────────────────────────────────────────────────────────
+
 function renderGear(items) {
   if (items.length === 0) {
     gearList.innerHTML = '<p class="empty-state">No equipment found.</p>';
     return;
   }
 
-  gearList.innerHTML = items.map(item => `
+  gearList.innerHTML = items.map(item => {
+    const profileName = getProfileName(item.profileId);
+    return `
     <div class="gear-item" data-id="${item.id}" onclick="openModal('${item.id}')" title="Click for maintenance guide">
       <div class="gear-item-main">
         <div class="gear-item-title">
           ${escapeHTML(item.name)}
           <span class="condition-pill ${conditionClass(item.condition)}">${escapeHTML(item.condition)}</span>
+          ${profileName ? `<span class="profile-badge">${escapeHTML(profileName)}</span>` : ''}
         </div>
         <div class="gear-item-meta">
           <span>📂 ${escapeHTML(item.category)}</span>
@@ -154,19 +280,28 @@ function renderGear(items) {
         <button class="btn-icon delete" title="Delete" onclick="deleteItem('${item.id}')">🗑</button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function updateUI() {
   const query = searchInput.value.toLowerCase();
-  const filtered = gear.filter(item =>
+  let filtered = gear.filter(item =>
     item.name.toLowerCase().includes(query) ||
     item.category.toLowerCase().includes(query) ||
     (item.brand || '').toLowerCase().includes(query)
   );
+  if (activeProfileFilter.size > 0) {
+    filtered = filtered.filter(item => {
+      if (activeProfileFilter.has('__none__') && !item.profileId) return true;
+      return item.profileId && activeProfileFilter.has(item.profileId);
+    });
+  }
   gearCount.textContent = gear.length;
   renderGear(filtered);
 }
+
+// ── Actions ───────────────────────────────────────────────────────────────────
 
 function markServiced(id) {
   const item = gear.find(g => g.id === id);
@@ -183,6 +318,7 @@ function deleteItem(id) {
   if (!confirm('Remove this item from your gear list?')) return;
   gear = gear.filter(item => item.id !== id);
   saveGear();
+  renderProfileFilter();
   updateUI();
 }
 
@@ -201,12 +337,15 @@ form.addEventListener('submit', e => {
     nextService:  data.get('next-service') || calcNextService(data.get('category'), data.get('last-service'), data.get('purchase-date')),
     serial:       data.get('serial').trim(),
     notes:        data.get('notes').trim(),
+    profileId:    data.get('profile-id') || null,
   };
 
   gear.unshift(newItem);
   saveGear();
+  renderProfileFilter();
   updateUI();
   form.reset();
+  updateProfileSelect();
 });
 
 searchInput.addEventListener('input', updateUI);
