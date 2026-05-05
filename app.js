@@ -59,6 +59,7 @@ document.getElementById('purchase-date').addEventListener('change', prefillNextS
 
 let gear = [];
 let activeProfileFilter = new Set(); // empty = show all
+let editingId = null; // id of item being edited, null = add mode
 
 function gearKey() {
   return 'diveGear_' + (getCurrentUser() || 'guest');
@@ -275,7 +276,8 @@ function renderGear(items) {
         ${item.nextService ? `<div class="gear-item-meta">${serviceStatus(item.nextService, item.category)}</div>` : ''}
         ${item.notes ? `<div class="gear-item-notes">${escapeHTML(item.notes)}</div>` : ''}
       </div>
-      <div class="gear-item-actions" onclick="(event).stopPropagation()">
+      <div class="gear-item-actions" onclick="event.stopPropagation()">
+        <button class="btn-icon edit" title="Edit" onclick="startEdit('${item.id}')">✏️</button>
         <button class="btn-icon service" title="Mark as serviced today" onclick="markServiced('${item.id}')">✅</button>
         <button class="btn-icon delete" title="Delete" onclick="deleteItem('${item.id}')">🗑</button>
       </div>
@@ -299,6 +301,42 @@ function updateUI() {
   }
   gearCount.textContent = gear.length;
   renderGear(filtered);
+}
+
+// ── Edit mode ─────────────────────────────────────────────────────────────────
+
+function startEdit(id) {
+  const item = gear.find(g => g.id === id);
+  if (!item) return;
+  editingId = id;
+
+  document.getElementById('category').value      = item.category;
+  document.getElementById('item-name').value     = item.name;
+  document.getElementById('brand').value         = item.brand || '';
+  document.getElementById('purchase-date').value = item.purchaseDate || '';
+  document.getElementById('condition').value     = item.condition;
+  document.getElementById('last-service').value  = item.lastService || '';
+  document.getElementById('next-service').value  = item.nextService || '';
+  document.getElementById('serial').value        = item.serial || '';
+  document.getElementById('notes').value         = item.notes || '';
+  document.getElementById('profile-select').value = item.profileId || '';
+
+  document.getElementById('add-section-title').textContent = 'Edit Equipment';
+  document.getElementById('submit-btn').textContent = 'Save Changes';
+  document.getElementById('cancel-edit-btn').classList.remove('hidden');
+  document.getElementById('add-section').classList.add('editing');
+
+  document.getElementById('add-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEdit() {
+  editingId = null;
+  form.reset();
+  updateProfileSelect();
+  document.getElementById('add-section-title').textContent = 'Add Equipment';
+  document.getElementById('submit-btn').textContent = 'Add to Gear List';
+  document.getElementById('cancel-edit-btn').classList.add('hidden');
+  document.getElementById('add-section').classList.remove('editing');
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────────
@@ -326,8 +364,7 @@ form.addEventListener('submit', e => {
   e.preventDefault();
   const data = new FormData(form);
 
-  const newItem = {
-    id: crypto.randomUUID(),
+  const fields = {
     category:     data.get('category'),
     name:         data.get('item-name').trim(),
     brand:        data.get('brand').trim(),
@@ -340,12 +377,21 @@ form.addEventListener('submit', e => {
     profileId:    data.get('profile-id') || null,
   };
 
-  gear.unshift(newItem);
-  saveGear();
-  renderProfileFilter();
-  updateUI();
-  form.reset();
-  updateProfileSelect();
+  if (editingId) {
+    const idx = gear.findIndex(g => g.id === editingId);
+    if (idx !== -1) gear[idx] = { ...gear[idx], ...fields };
+    saveGear();
+    renderProfileFilter();
+    updateUI();
+    cancelEdit();
+  } else {
+    gear.unshift({ id: crypto.randomUUID(), ...fields });
+    saveGear();
+    renderProfileFilter();
+    updateUI();
+    form.reset();
+    updateProfileSelect();
+  }
 });
 
 searchInput.addEventListener('input', updateUI);

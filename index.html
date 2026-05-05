@@ -88,7 +88,7 @@
 
       <!-- Add Equipment Form -->
       <section class="card" id="add-section">
-        <h2>Add Equipment</h2>
+        <h2 id="add-section-title">Add Equipment</h2>
         <form id="gear-form">
 
           <div class="form-row">
@@ -189,7 +189,8 @@
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn-primary">Add to Gear List</button>
+            <button type="submit" id="submit-btn" class="btn-primary">Add to Gear List</button>
+            <button type="button" id="cancel-edit-btn" class="btn-secondary hidden" onclick="cancelEdit()">Cancel</button>
             <button type="reset" class="btn-secondary">Clear</button>
           </div>
 
