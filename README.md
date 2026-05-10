@@ -67,6 +67,15 @@ Diving_Assistant/
 
 ## Changelog
 
+### v0.9 — Searchable Brand & Item Dropdowns
+- Brand and Item Name / Model fields replaced with custom searchable dropdowns
+- Dataset of 25 real scuba manufacturers (Scubapro, Mares, Cressi, Aqualung, Apeks, Suunto, Shearwater, and more)
+- 200+ real products across all 19 equipment categories
+- Options are alphabetically sorted; typing filters results live with match text highlighted in blue
+- Selecting a category + brand narrows the item list to only relevant products
+- Typing a name not in the list is still accepted (free-text entry)
+- Edit mode correctly pre-fills both visible text inputs; Cancel clears them cleanly
+
 ### v0.8 — Edit Equipment
 - ✏️ button on each gear card opens the form in edit mode, pre-filled with all existing values
 - Form title changes to "Edit Equipment" and submit button reads "Save Changes"
