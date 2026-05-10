@@ -17,6 +17,7 @@ No installation or server required — just open `index.html` in any browser.
   - 🔵 Blue — more than 30 days remaining
   - 🟠 Orange — service due within 30 days
   - 🔴 Red — overdue
+- **Edit equipment** — ✏️ button on each card pre-fills the form for in-place editing; cancel at any time without losing changes
 - **Mark as Serviced** — one click resets the countdown from today and clears a "Needs Service" condition
 - **Maintenance guide** — click any gear card to open a step-by-step maintenance guide tailored to that equipment type
 - **Search** — filter your gear list by name, category, or brand
@@ -65,6 +66,11 @@ Diving_Assistant/
 ---
 
 ## Changelog
+
+### v0.8 — Edit Equipment
+- ✏️ button on each gear card opens the form in edit mode, pre-filled with all existing values
+- Form title changes to "Edit Equipment" and submit button reads "Save Changes"
+- Cancel button exits edit mode and restores the blank add form without losing any data
 
 ### v0.7 — Profiles
 - Each registered user can create multiple named profiles (e.g. "Recreational", "Tech Diving", "Photography")
