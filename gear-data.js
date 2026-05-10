@@ -240,46 +240,62 @@ const GEAR_DATA = {
   },
 };
 
-// ── Datalist population ───────────────────────────────────────────────────────
+// ── Select population ─────────────────────────────────────────────────────────
 
-function populateBrandList() {
-  const dl = document.getElementById('brand-list');
-  if (!dl) return;
-  dl.innerHTML = GEAR_DATA.brands
-    .map(b => `<option value="${b}"></option>`)
-    .join('');
+function populateBrandSelect() {
+  const sel = document.getElementById('brand');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">-- Select brand --</option>' +
+    GEAR_DATA.brands
+      .map(b => `<option value="${b}"${b === current ? ' selected' : ''}>${b}</option>`)
+      .join('');
 }
 
-function populateItemList(category) {
-  const dl = document.getElementById('item-name-list');
-  if (!dl) return;
-  const products = GEAR_DATA.products[category] || [];
+function populateItemSelect(preserveValue) {
+  const sel = document.getElementById('item-name');
+  if (!sel) return;
+  const category = document.getElementById('category').value;
+  const brand    = document.getElementById('brand').value;
 
-  if (!category || !products.length) {
-    // No category selected — show all products across every category
-    const all = Object.values(GEAR_DATA.products).flat();
-    dl.innerHTML = all.map(p => `<option value="${p}"></option>`).join('');
-  } else {
-    dl.innerHTML = products.map(p => `<option value="${p}"></option>`).join('');
+  let products = category ? (GEAR_DATA.products[category] || []) : Object.values(GEAR_DATA.products).flat();
+  if (brand) products = products.filter(p => p.toLowerCase().startsWith(brand.toLowerCase()));
+
+  let placeholder;
+  if (!category && !brand)      placeholder = '-- Select category &amp; brand first --';
+  else if (!products.length)    placeholder = '-- No products found for this selection --';
+  else                          placeholder = '-- Select model --';
+
+  const prev = preserveValue || sel.value;
+  sel.innerHTML = `<option value="">${placeholder}</option>` +
+    products.map(p => `<option value="${p}"${p === prev ? ' selected' : ''}>${p}</option>`).join('');
+}
+
+// Inject a custom option into the item select (used by edit mode for legacy values)
+function ensureItemOption(value) {
+  if (!value) return;
+  const sel = document.getElementById('item-name');
+  if (!sel) return;
+  const exists = Array.from(sel.options).some(o => o.value === value);
+  if (!exists) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = value + ' (custom)';
+    sel.appendChild(opt);
   }
+  sel.value = value;
 }
 
-// Re-populate item list whenever the category changes
-document.getElementById('category').addEventListener('change', e => {
-  populateItemList(e.target.value);
-  // Clear item name field so user picks from the new list
-  document.getElementById('item-name').value = '';
+// Category change → reset brand & item
+document.getElementById('category').addEventListener('change', () => {
+  document.getElementById('brand').value = '';
+  populateItemSelect('');
 });
 
-// Auto-fill brand when a known product is selected
-document.getElementById('item-name').addEventListener('change', e => {
-  const chosen = e.target.value.trim();
-  if (!chosen) return;
-  const brandField = document.getElementById('brand');
-  if (brandField.value) return; // Don't overwrite if already filled
-  const match = GEAR_DATA.brands.find(b => chosen.toLowerCase().startsWith(b.toLowerCase()));
-  if (match) brandField.value = match;
+// Brand change → refresh item list, keep current item if still valid
+document.getElementById('brand').addEventListener('change', () => {
+  populateItemSelect('');
 });
 
-populateBrandList();
-populateItemList('');
+populateBrandSelect();
+populateItemSelect('');

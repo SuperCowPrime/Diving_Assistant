@@ -310,9 +310,10 @@ function startEdit(id) {
   if (!item) return;
   editingId = id;
 
-  document.getElementById('category').value      = item.category;
-  document.getElementById('item-name').value     = item.name;
-  document.getElementById('brand').value         = item.brand || '';
+  document.getElementById('category').value = item.category;
+  document.getElementById('brand').value    = item.brand || '';
+  populateItemSelect(item.name);
+  ensureItemOption(item.name);
   document.getElementById('purchase-date').value = item.purchaseDate || '';
   document.getElementById('condition').value     = item.condition;
   document.getElementById('last-service').value  = item.lastService || '';
