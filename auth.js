@@ -27,11 +27,11 @@ function clearSession() {
   sessionStorage.removeItem('diveSession');
 }
 
-async function registerUser(username, password) {
+async function registerUser(username, password, email) {
   const users = getUsers();
   if (users[username]) return { ok: false, error: 'Username already taken.' };
   const passwordHash = await hashPassword(password);
-  users[username] = { passwordHash };
+  users[username] = { passwordHash, email: email || '' };
   saveUsers(users);
   return { ok: true };
 }
@@ -118,8 +118,14 @@ document.getElementById('register-form').addEventListener('submit', async e => {
   errorEl.textContent = '';
   successEl.textContent = '';
 
+  const email = document.getElementById('reg-email').value.trim();
+
   if (username.length < 3) {
     errorEl.textContent = 'Username must be at least 3 characters.';
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errorEl.textContent = 'Please enter a valid email address.';
     return;
   }
   if (password.length < 6) {
@@ -131,7 +137,7 @@ document.getElementById('register-form').addEventListener('submit', async e => {
     return;
   }
 
-  const result = await registerUser(username, password);
+  const result = await registerUser(username, password, email);
   if (!result.ok) {
     errorEl.textContent = result.error;
     return;
@@ -155,6 +161,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 const existing = getCurrentUser();
 if (existing) {
   showApp(existing);
+  initGear();
 } else {
   showAuth();
 }

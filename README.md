@@ -67,6 +67,16 @@ Diving_Assistant/
 
 ## Changelog
 
+### v1.0 — Email Reminders & Email Registration
+- Email address field added to the Register form (validated before account creation)
+- Email is stored with the user's account and used for all reminder notifications
+- Each gear item can have multiple email reminders, each with its own "days before service" threshold
+- Reminders are checked every time you log in or reload the app; if a threshold is reached and an email hasn't already been sent for the current service cycle, an email is dispatched automatically
+- Servicing an item (✅ button) resets all its reminder flags so they fire again in the next cycle
+- Reminder chips are shown in the Add/Edit form and a 🔔 badge appears on gear cards
+- Email sending powered by [EmailJS](https://www.emailjs.com/) — configure your keys in `email-service.js`
+- Bug fix: reloading the page while already logged in now correctly loads gear (previously required a fresh login)
+
 ### v0.9 — Searchable Brand & Item Dropdowns
 - Brand and Item Name / Model fields replaced with custom searchable dropdowns
 - Dataset of 25 real scuba manufacturers (Scubapro, Mares, Cressi, Aqualung, Apeks, Suunto, Shearwater, and more)

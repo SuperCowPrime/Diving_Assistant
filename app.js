@@ -59,7 +59,8 @@ document.getElementById('purchase-date').addEventListener('change', prefillNextS
 
 let gear = [];
 let activeProfileFilter = new Set(); // empty = show all
-let editingId = null; // id of item being edited, null = add mode
+let editingId = null;     // id of item being edited, null = add mode
+let formReminders = [];   // reminders staged in the add/edit form
 
 function gearKey() {
   return 'diveGear_' + (getCurrentUser() || 'guest');
@@ -75,6 +76,8 @@ function initGear() {
   searchInput.value = '';
   renderProfileManager();
   updateUI();
+  renderFormReminders();
+  checkAndSendReminders();
 }
 
 // ── Profiles ──────────────────────────────────────────────────────────────────
@@ -272,6 +275,7 @@ function renderGear(items) {
           ${item.purchaseDate ? `<span>🛒 Bought: ${formatDate(item.purchaseDate)}</span>` : ''}
           ${item.lastService ? `<span>🔧 Serviced: ${formatDate(item.lastService)}</span>` : ''}
           ${item.serial ? `<span>🔢 S/N: ${escapeHTML(item.serial)}</span>` : ''}
+          ${item.reminders?.length ? `<span>🔔 ${item.reminders.length} reminder${item.reminders.length !== 1 ? 's' : ''}</span>` : ''}
         </div>
         ${item.nextService ? `<div class="gear-item-meta">${serviceStatus(item.nextService, item.category)}</div>` : ''}
         ${item.notes ? `<div class="gear-item-notes">${escapeHTML(item.notes)}</div>` : ''}
@@ -321,6 +325,9 @@ function startEdit(id) {
   document.getElementById('notes').value         = item.notes || '';
   document.getElementById('profile-select').value = item.profileId || '';
 
+  formReminders = (item.reminders || []).map(r => ({ ...r }));
+  renderFormReminders();
+
   document.getElementById('add-section-title').textContent = 'Edit Equipment';
   document.getElementById('submit-btn').textContent = 'Save Changes';
   document.getElementById('cancel-edit-btn').classList.remove('hidden');
@@ -335,10 +342,75 @@ function cancelEdit() {
   brandSelectCtrl.clear();
   itemNameSelectCtrl.clear();
   updateProfileSelect();
+  formReminders = [];
+  renderFormReminders();
   document.getElementById('add-section-title').textContent = 'Add Equipment';
   document.getElementById('submit-btn').textContent = 'Add to Gear List';
   document.getElementById('cancel-edit-btn').classList.add('hidden');
   document.getElementById('add-section').classList.remove('editing');
+}
+
+// ── Reminders ─────────────────────────────────────────────────────────────────
+
+function renderFormReminders() {
+  const list = document.getElementById('reminder-list');
+  if (!list) return;
+  if (!formReminders.length) {
+    list.innerHTML = '<p class="no-reminders">No reminders added yet.</p>';
+    return;
+  }
+  const sorted = [...formReminders].sort((a, b) => b.days - a.days);
+  list.innerHTML = sorted.map(r => `
+    <div class="reminder-chip">
+      <span>⏰ ${r.days} day${r.days !== 1 ? 's' : ''} before service</span>
+      <button type="button" class="reminder-chip-delete" onclick="removeReminderField('${r.id}')" title="Remove">×</button>
+    </div>
+  `).join('');
+}
+
+function addReminderField() {
+  const input = document.getElementById('reminder-days-input');
+  const days = parseInt(input.value, 10);
+  if (!days || days < 1 || days > 365) { input.focus(); return; }
+  if (formReminders.some(r => r.days === days)) { input.value = ''; input.focus(); return; }
+  formReminders.push({ id: crypto.randomUUID(), days, lastSentForService: null });
+  input.value = '';
+  input.focus();
+  renderFormReminders();
+}
+
+function removeReminderField(id) {
+  formReminders = formReminders.filter(r => r.id !== id);
+  renderFormReminders();
+}
+
+function checkAndSendReminders() {
+  const username = getCurrentUser();
+  if (!username) return;
+  const email = (typeof getUserEmail === 'function') ? getUserEmail(username) : null;
+  if (!email) return;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let changed = false;
+
+  gear.forEach(item => {
+    if (!item.nextService || !item.reminders?.length) return;
+    const due = new Date(item.nextService);
+    const daysUntil = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+
+    item.reminders.forEach(reminder => {
+      if (daysUntil > reminder.days) return;                         // threshold not yet reached
+      if (reminder.lastSentForService === item.nextService) return;  // already sent this cycle
+      if (typeof sendReminderEmail === 'function') {
+        sendReminderEmail(email, username, item, daysUntil);
+      }
+      reminder.lastSentForService = item.nextService;
+      changed = true;
+    });
+  });
+
+  if (changed) saveGear();
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────────
@@ -350,6 +422,8 @@ function markServiced(id) {
   item.lastService = today;
   item.nextService = calcNextService(item.category, today, item.purchaseDate);
   if (item.condition === 'Needs Service') item.condition = 'Good';
+  // Reset reminder "sent" flags so they fire again in the new service cycle.
+  if (item.reminders) item.reminders.forEach(r => { r.lastSentForService = null; });
   saveGear();
   updateUI();
 }
@@ -377,6 +451,7 @@ form.addEventListener('submit', e => {
     serial:       data.get('serial').trim(),
     notes:        data.get('notes').trim(),
     profileId:    data.get('profile-id') || null,
+    reminders:    formReminders.map(r => ({ ...r })),
   };
 
   if (editingId) {
@@ -392,7 +467,11 @@ form.addEventListener('submit', e => {
     renderProfileFilter();
     updateUI();
     form.reset();
+    brandSelectCtrl.clear();
+    itemNameSelectCtrl.clear();
     updateProfileSelect();
+    formReminders = [];
+    renderFormReminders();
   }
 });
 
