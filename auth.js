@@ -44,6 +44,16 @@ async function loginUser(username, password) {
   return { ok: true };
 }
 
+// ── Password toggle ──────────────────────────────────────────────────────────
+
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.textContent = showing ? '👁' : '🙈';
+  btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+}
+
 // ── UI ──────────────────────────────────────────────────────────────────────
 
 const authScreen  = document.getElementById('auth-screen');
