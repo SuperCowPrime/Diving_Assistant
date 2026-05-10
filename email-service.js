@@ -19,7 +19,7 @@
 const EMAILJS_CONFIG = {
   publicKey:  'ZNzs5ZWX2I4JCtOP0',   // Account → General → Public Key
   serviceId:  'service_xe6n7dr',   // Email Services → <your service> → Service ID
-  templateId: 'YOUR_TEMPLATE_ID',  // Email Templates → <your template> → Template ID
+  templateId: 'template_cmh1f9g',  // Email Templates → <your template> → Template ID
 };
 
 (function initEmailJS() {
