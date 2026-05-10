@@ -242,7 +242,7 @@ const GEAR_DATA = {
 
 // ── Searchable select factory ─────────────────────────────────────────────────
 
-function createSearchableSelect({ textId, dropdownId, hiddenId, getItems }) {
+function createSearchableSelect({ textId, dropdownId, hiddenId, getItems, allowCustom = false }) {
   const text     = document.getElementById(textId);
   const dropdown = document.getElementById(dropdownId);
   const hidden   = document.getElementById(hiddenId);
@@ -268,32 +268,48 @@ function createSearchableSelect({ textId, dropdownId, hiddenId, getItems }) {
       item.toLowerCase().includes(q.toLowerCase())
     );
     activeIdx = -1;
-    if (!items.length) {
-      dropdown.innerHTML = '<li class="ss-no-results">No results found</li>';
-    } else {
-      dropdown.innerHTML = items
-        .map(item => `<li class="ss-option" role="option" data-value="${escapeHTML(item)}">${highlight(item, q)}</li>`)
-        .join('');
+
+    let html = items.length
+      ? items.map(item =>
+          `<li class="ss-option" role="option" data-value="${escapeHTML(item)}">${highlight(item, q)}</li>`
+        ).join('')
+      : '<li class="ss-no-results">No results found</li>';
+
+    // Show "Use '…'" option when custom entry is allowed and the typed text
+    // is non-empty and doesn't already exactly match a list item.
+    if (allowCustom && q && !items.some(i => i.toLowerCase() === q.toLowerCase())) {
+      html += `<li class="ss-option ss-custom-option" role="option" data-value="${escapeHTML(q)}">➕ Use "<strong>${escapeHTML(q)}</strong>"</li>`;
     }
+
+    dropdown.innerHTML = html;
   }
 
   function open() { renderList(); dropdown.classList.add('open'); isOpen = true; }
+
   function close() {
     dropdown.classList.remove('open');
     isOpen = false;
     activeIdx = -1;
-    if (text.value !== hidden.value) {
-      text.value = hidden.value;
-      if (!hidden.value) text.setCustomValidity('Please select an option from the list.');
+    if (allowCustom) {
+      // Accept whatever the user typed as a valid free-text value.
+      const trimmed = text.value.trim();
+      text.value    = trimmed;
+      hidden.value  = trimmed;
+      text.setCustomValidity('');
+    } else {
+      if (text.value !== hidden.value) {
+        text.value = hidden.value;
+        if (!hidden.value) text.setCustomValidity('Please select an option from the list.');
+      }
     }
   }
 
   function pick(value) {
-    text.value  = value;
+    text.value   = value;
     hidden.value = value;
     text.setCustomValidity('');
     dropdown.classList.remove('open');
-    isOpen = false;
+    isOpen    = false;
     activeIdx = -1;
     text.dispatchEvent(new Event('ss-change', { bubbles: true }));
   }
@@ -315,8 +331,16 @@ function createSearchableSelect({ textId, dropdownId, hiddenId, getItems }) {
   text.addEventListener('focus', open);
 
   text.addEventListener('input', () => {
-    hidden.value = '';
-    text.setCustomValidity(text.value ? 'Please select an option from the list.' : '');
+    if (allowCustom) {
+      // Accept the typed text immediately so downstream listeners (e.g. item
+      // list filtering) stay in sync while the user types.
+      hidden.value = text.value.trim();
+      text.setCustomValidity('');
+      text.dispatchEvent(new Event('ss-change', { bubbles: true }));
+    } else {
+      hidden.value = '';
+      text.setCustomValidity(text.value ? 'Please select an option from the list.' : '');
+    }
     renderList();
     if (!isOpen) { dropdown.classList.add('open'); isOpen = true; }
   });
@@ -330,9 +354,14 @@ function createSearchableSelect({ textId, dropdownId, hiddenId, getItems }) {
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       activeIdx = Math.max(activeIdx - 1, 0);
-    } else if (e.key === 'Enter' && activeIdx >= 0) {
+    } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (opts[activeIdx]) pick(opts[activeIdx].dataset.value);
+      if (activeIdx >= 0 && opts[activeIdx]) {
+        pick(opts[activeIdx].dataset.value);
+      } else if (allowCustom && text.value.trim()) {
+        // Pressing Enter with no option highlighted confirms the typed text.
+        pick(text.value.trim());
+      }
       return;
     } else if (e.key === 'Escape') {
       close(); return;
@@ -370,11 +399,13 @@ function getItemList() {
 const brandSelectCtrl = createSearchableSelect({
   textId: 'brand-input', dropdownId: 'brand-dropdown', hiddenId: 'brand',
   getItems: () => GEAR_DATA.brands,
+  allowCustom: true,
 });
 
 const itemNameSelectCtrl = createSearchableSelect({
   textId: 'item-name-input', dropdownId: 'item-name-dropdown', hiddenId: 'item-name',
   getItems: getItemList,
+  allowCustom: true,
 });
 
 // Category change → reset brand and item

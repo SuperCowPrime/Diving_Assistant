@@ -274,6 +274,18 @@ textarea { resize: vertical; }
   font-weight: 700;
 }
 
+.ss-custom-option {
+  color: var(--teal-dark);
+  border-top: 1px dashed #c5d8e8;
+  font-style: italic;
+}
+
+.ss-custom-option:hover,
+.ss-custom-option.ss-active {
+  background: #d5f5e3;
+  color: var(--teal-dark);
+}
+
 .btn-icon:hover { background: var(--blue-pale); }
 .btn-icon.edit:hover    { background: #fef9e7; }
 .btn-icon.service:hover { background: #d5f5e3; }
