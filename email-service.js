@@ -17,7 +17,7 @@
 //  4. Paste your keys into the three fields below.
 //
 const EMAILJS_CONFIG = {
-  publicKey:  'YOUR_PUBLIC_KEY',   // Account → General → Public Key
+  publicKey:  'ZNzs5ZWX2I4JCtOP0',   // Account → General → Public Key
   serviceId:  'service_xe6n7dr',   // Email Services → <your service> → Service ID
   templateId: 'YOUR_TEMPLATE_ID',  // Email Templates → <your template> → Template ID
 };
