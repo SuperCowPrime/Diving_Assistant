@@ -37,11 +37,36 @@ The next service date is calculated as: **last service date + interval**, fallin
 
 ---
 
+## Email Reminder Setup
+
+Email reminders use [EmailJS](https://www.emailjs.com/) and are already configured in `email-service.js`.  
+To use them with your own EmailJS account, replace the three keys in that file:
+
+| Key | Where to find it |
+|---|---|
+| `publicKey` | EmailJS → Account → General → Public Key |
+| `serviceId` | EmailJS → Email Services → your service → Service ID |
+| `templateId` | EmailJS → Email Templates → your template → Template ID |
+
+The email template should include these variables:
+
+| Variable | Description |
+|---|---|
+| `{{to_email}}` | Recipient address |
+| `{{to_name}}` | Diver's username |
+| `{{item_name}}` | Gear item name / model |
+| `{{item_category}}` | Equipment category |
+| `{{days_until}}` | Days remaining or "Overdue by X days" |
+| `{{next_service_date}}` | Formatted service due date |
+
+---
+
 ## Getting Started
 
 1. Clone or download the repository
 2. Open `index.html` in your browser
-3. Start adding your dive gear
+3. Register an account (email address required for reminders)
+4. Start adding your dive gear
 
 ```bash
 git clone https://github.com/SuperCowPrime/Diving_Assistant.git
@@ -74,7 +99,7 @@ Diving_Assistant/
 - Reminders are checked every time you log in or reload the app; if a threshold is reached and an email hasn't already been sent for the current service cycle, an email is dispatched automatically
 - Servicing an item (✅ button) resets all its reminder flags so they fire again in the next cycle
 - Reminder chips are shown in the Add/Edit form and a 🔔 badge appears on gear cards
-- Email sending powered by [EmailJS](https://www.emailjs.com/) — configure your keys in `email-service.js`
+- Email sending powered by [EmailJS](https://www.emailjs.com/) — fully configured and ready to use
 - Bug fix: reloading the page while already logged in now correctly loads gear (previously required a fresh login)
 
 ### v0.9 — Searchable Brand & Item Dropdowns
