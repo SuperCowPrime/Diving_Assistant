@@ -311,9 +311,8 @@ function startEdit(id) {
   editingId = id;
 
   document.getElementById('category').value = item.category;
-  document.getElementById('brand').value    = item.brand || '';
-  populateItemSelect(item.name);
-  ensureItemOption(item.name);
+  brandSelectCtrl.setValue(item.brand || '');
+  itemNameSelectCtrl.setValue(item.name);
   document.getElementById('purchase-date').value = item.purchaseDate || '';
   document.getElementById('condition').value     = item.condition;
   document.getElementById('last-service').value  = item.lastService || '';
@@ -333,6 +332,8 @@ function startEdit(id) {
 function cancelEdit() {
   editingId = null;
   form.reset();
+  brandSelectCtrl.clear();
+  itemNameSelectCtrl.clear();
   updateProfileSelect();
   document.getElementById('add-section-title').textContent = 'Add Equipment';
   document.getElementById('submit-btn').textContent = 'Add to Gear List';

@@ -240,62 +240,155 @@ const GEAR_DATA = {
   },
 };
 
-// ── Select population ─────────────────────────────────────────────────────────
+// ── Searchable select factory ─────────────────────────────────────────────────
 
-function populateBrandSelect() {
-  const sel = document.getElementById('brand');
-  if (!sel) return;
-  const current = sel.value;
-  sel.innerHTML = '<option value="">-- Select brand --</option>' +
-    GEAR_DATA.brands
-      .map(b => `<option value="${b}"${b === current ? ' selected' : ''}>${b}</option>`)
-      .join('');
+function createSearchableSelect({ textId, dropdownId, hiddenId, getItems }) {
+  const text     = document.getElementById(textId);
+  const dropdown = document.getElementById(dropdownId);
+  const hidden   = document.getElementById(hiddenId);
+  let isOpen     = false;
+  let activeIdx  = -1;
+
+  function sorted(arr) {
+    return [...arr].sort((a, b) => a.localeCompare(b));
+  }
+
+  function highlight(str, query) {
+    if (!query) return escapeHTML(str);
+    const i = str.toLowerCase().indexOf(query.toLowerCase());
+    if (i === -1) return escapeHTML(str);
+    return escapeHTML(str.slice(0, i)) +
+      '<mark class="ss-match">' + escapeHTML(str.slice(i, i + query.length)) + '</mark>' +
+      escapeHTML(str.slice(i + query.length));
+  }
+
+  function renderList() {
+    const q = text.value.trim();
+    const items = sorted(getItems()).filter(item =>
+      item.toLowerCase().includes(q.toLowerCase())
+    );
+    activeIdx = -1;
+    if (!items.length) {
+      dropdown.innerHTML = '<li class="ss-no-results">No results found</li>';
+    } else {
+      dropdown.innerHTML = items
+        .map(item => `<li class="ss-option" role="option" data-value="${escapeHTML(item)}">${highlight(item, q)}</li>`)
+        .join('');
+    }
+  }
+
+  function open() { renderList(); dropdown.classList.add('open'); isOpen = true; }
+  function close() {
+    dropdown.classList.remove('open');
+    isOpen = false;
+    activeIdx = -1;
+    if (text.value !== hidden.value) {
+      text.value = hidden.value;
+      if (!hidden.value) text.setCustomValidity('Please select an option from the list.');
+    }
+  }
+
+  function pick(value) {
+    text.value  = value;
+    hidden.value = value;
+    text.setCustomValidity('');
+    dropdown.classList.remove('open');
+    isOpen = false;
+    activeIdx = -1;
+    text.dispatchEvent(new Event('ss-change', { bubbles: true }));
+  }
+
+  function setValue(value) {
+    text.value   = value || '';
+    hidden.value = value || '';
+    text.setCustomValidity('');
+  }
+
+  function clear() {
+    text.value   = '';
+    hidden.value = '';
+    text.setCustomValidity('');
+    dropdown.classList.remove('open');
+    isOpen = false;
+  }
+
+  text.addEventListener('focus', open);
+
+  text.addEventListener('input', () => {
+    hidden.value = '';
+    text.setCustomValidity(text.value ? 'Please select an option from the list.' : '');
+    renderList();
+    if (!isOpen) { dropdown.classList.add('open'); isOpen = true; }
+  });
+
+  text.addEventListener('keydown', e => {
+    const opts = dropdown.querySelectorAll('.ss-option');
+    if (!isOpen) { open(); return; }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, opts.length - 1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault();
+      if (opts[activeIdx]) pick(opts[activeIdx].dataset.value);
+      return;
+    } else if (e.key === 'Escape') {
+      close(); return;
+    } else { return; }
+    opts.forEach((o, i) => o.classList.toggle('ss-active', i === activeIdx));
+    if (opts[activeIdx]) opts[activeIdx].scrollIntoView({ block: 'nearest' });
+  });
+
+  dropdown.addEventListener('mousedown', e => {
+    const opt = e.target.closest('.ss-option');
+    if (opt) { e.preventDefault(); pick(opt.dataset.value); }
+  });
+
+  document.addEventListener('click', e => {
+    if (isOpen && !text.contains(e.target) && !dropdown.contains(e.target)) close();
+  });
+
+  return { setValue, clear, pick };
 }
 
-function populateItemSelect(preserveValue) {
-  const sel = document.getElementById('item-name');
-  if (!sel) return;
+// ── Item list helper ──────────────────────────────────────────────────────────
+
+function getItemList() {
   const category = document.getElementById('category').value;
   const brand    = document.getElementById('brand').value;
-
-  let products = category ? (GEAR_DATA.products[category] || []) : Object.values(GEAR_DATA.products).flat();
+  let products   = category
+    ? (GEAR_DATA.products[category] || [])
+    : Object.values(GEAR_DATA.products).flat();
   if (brand) products = products.filter(p => p.toLowerCase().startsWith(brand.toLowerCase()));
-
-  let placeholder;
-  if (!category && !brand)      placeholder = '-- Select category &amp; brand first --';
-  else if (!products.length)    placeholder = '-- No products found for this selection --';
-  else                          placeholder = '-- Select model --';
-
-  const prev = preserveValue || sel.value;
-  sel.innerHTML = `<option value="">${placeholder}</option>` +
-    products.map(p => `<option value="${p}"${p === prev ? ' selected' : ''}>${p}</option>`).join('');
+  return products;
 }
 
-// Inject a custom option into the item select (used by edit mode for legacy values)
-function ensureItemOption(value) {
-  if (!value) return;
-  const sel = document.getElementById('item-name');
-  if (!sel) return;
-  const exists = Array.from(sel.options).some(o => o.value === value);
-  if (!exists) {
-    const opt = document.createElement('option');
-    opt.value = value;
-    opt.textContent = value + ' (custom)';
-    sel.appendChild(opt);
-  }
-  sel.value = value;
-}
+// ── Initialise both controls ──────────────────────────────────────────────────
 
-// Category change → reset brand & item
+const brandSelectCtrl = createSearchableSelect({
+  textId: 'brand-input', dropdownId: 'brand-dropdown', hiddenId: 'brand',
+  getItems: () => GEAR_DATA.brands,
+});
+
+const itemNameSelectCtrl = createSearchableSelect({
+  textId: 'item-name-input', dropdownId: 'item-name-dropdown', hiddenId: 'item-name',
+  getItems: getItemList,
+});
+
+// Category change → reset brand and item
 document.getElementById('category').addEventListener('change', () => {
-  document.getElementById('brand').value = '';
-  populateItemSelect('');
+  brandSelectCtrl.clear();
+  itemNameSelectCtrl.clear();
+  document.getElementById('item-name-input').placeholder = 'Select category & brand first…';
 });
 
-// Brand change → refresh item list, keep current item if still valid
-document.getElementById('brand').addEventListener('change', () => {
-  populateItemSelect('');
+// Brand chosen → refresh item list placeholder and clear old item
+document.getElementById('brand-input').addEventListener('ss-change', () => {
+  itemNameSelectCtrl.clear();
+  const brand = document.getElementById('brand').value;
+  document.getElementById('item-name-input').placeholder = brand
+    ? 'Type to search models…'
+    : 'Select category & brand first…';
 });
-
-populateBrandSelect();
-populateItemSelect('');
