@@ -92,6 +92,16 @@ Diving_Assistant/
 
 ## Changelog
 
+### v1.1 — Dive Map
+- New **Dive Map** tab in the top navigation alongside Equipment
+- Interactive map (Leaflet + OpenStreetMap) showing dive shops, dive centres, and dive sites near you
+- Automatically centres on your location when you open the tab (requires browser permission)
+- Search bar: type any city or place to jump to it (powered by OpenStreetMap Nominatim geocoder)
+- **📍 My Location** button to re-centre the map on you at any time
+- Filter buttons to show All, Shops & Centres only, or Dive Sites only
+- Clicking a pin shows a popup with name, type, address, phone, opening hours, and website link where available
+- Live data from OpenStreetMap via the Overpass API — no API key required
+
 ### v1.0 — Email Reminders & Email Registration
 - Email address field added to the Register form (validated before account creation)
 - Email is stored with the user's account and used for all reminder notifications

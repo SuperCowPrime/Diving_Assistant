@@ -6,6 +6,7 @@
   <title>Dive Gear Manager</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -86,6 +87,14 @@
       </div>
     </header>
 
+    <!-- ── App tab navigation ──────────────────────────────────────── -->
+    <nav class="app-tab-nav">
+      <button class="app-tab active" data-tab="equipment" onclick="switchAppTab('equipment')">🗂 Equipment</button>
+      <button class="app-tab" data-tab="map" onclick="switchAppTab('map')">🗺 Dive Map</button>
+    </nav>
+
+    <!-- ── Equipment pane ──────────────────────────────────────────── -->
+    <div id="equipment-pane">
     <main>
 
       <!-- Profiles -->
@@ -245,6 +254,26 @@
         </div>
       </section>
     </main>
+    </div><!-- end #equipment-pane -->
+
+    <!-- ── Map pane ────────────────────────────────────────────────── -->
+    <div id="map-pane" class="hidden">
+      <div class="map-toolbar">
+        <div class="map-search-row">
+          <input type="text" id="map-search-input" placeholder="Search any city or location…"
+            onkeydown="if(event.key==='Enter') mapSearch()" />
+          <button class="btn-primary map-search-btn" onclick="mapSearch()">🔍 Search</button>
+          <button class="btn-secondary map-locate-btn" onclick="mapLocateMe()" title="Use my location">📍 My Location</button>
+        </div>
+        <div class="map-filter-row">
+          <button class="map-filter-btn active" data-filter="all"   onclick="setMapFilter('all')">All</button>
+          <button class="map-filter-btn"         data-filter="shop"  onclick="setMapFilter('shop')">🏪 Shops &amp; Centres</button>
+          <button class="map-filter-btn"         data-filter="site"  onclick="setMapFilter('site')">🤿 Dive Sites</button>
+        </div>
+        <p class="map-status" id="map-status"></p>
+      </div>
+      <div id="map"></div>
+    </div><!-- end #map-pane -->
 
     <!-- Maintenance Modal -->
     <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
@@ -261,10 +290,12 @@
     </div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="maintenance.js"></script>
   <script src="app.js"></script>
   <script src="gear-data.js"></script>
   <script src="email-service.js"></script>
+  <script src="map.js"></script>
   <script src="auth.js"></script>
 </body>
 </html>
