@@ -14,7 +14,7 @@
   --danger: #e74c3c;
   --text: #1c2833;
   --text-muted: #717d7e;
-  --bg: #f4ead3;
+  --bg: #eaf4fb;
   --white: #ffffff;
 
   /* ── L2 Adventure color tokens ── */
@@ -47,7 +47,7 @@
 
 body {
   font-family: var(--font-body);
-  background: var(--sand);
+  background: #eaf4fb;
   color: var(--text);
   min-height: 100vh;
 }
@@ -104,11 +104,9 @@ header .subtitle { margin-top: 8px; opacity: .78; font-size: .95rem; font-family
   display: block;
   width: 100%;
   line-height: 0;
-  /* The tab nav sits below; keep bg transparent so the sunset bleeds through */
-  background: transparent;
-  margin-top: -2px;
-  position: relative;
-  z-index: 1;
+  /* Match the header gradient so the space above the wave curve is invisible */
+  background: var(--gradient-sunset);
+  margin: 0;
 }
 
 .wave-divider svg {
