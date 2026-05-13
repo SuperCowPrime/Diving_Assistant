@@ -678,6 +678,76 @@ textarea { resize: vertical; }
 .counter-date  { opacity: .7; font-weight: 500; }
 .counter-date::before { content: '·'; margin-right: 6px; }
 
+/* Broken / in-repair badge — replaces service counter for broken items */
+.repair-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 700;
+  background: #c0392b;
+  color: #fff;
+  letter-spacing: .04em;
+}
+
+/* Reminder indicator button + popup */
+.reminder-indicator {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  padding: 0;
+  font-family: inherit;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reminder-indicator:hover { color: var(--reef-coral); }
+
+.reminder-popup {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 210px;
+  background: var(--white);
+  border: 1.5px solid var(--border-card);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(10,35,66,.15);
+  z-index: 30;
+  padding: 8px 0 10px;
+  text-align: left;
+}
+
+.reminder-popup.open { display: block; }
+
+.reminder-popup-header {
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--text-muted);
+  padding: 4px 14px 8px;
+  border-bottom: 1px solid var(--border-card);
+  margin-bottom: 4px;
+}
+
+.reminder-popup-row {
+  padding: 5px 14px;
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+}
+
 /* ── Modal ────────────────────────────────────────────────────────────────── */
 
 .modal-overlay {

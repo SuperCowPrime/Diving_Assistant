@@ -276,9 +276,16 @@ function renderGear(items) {
           ${item.purchaseDate ? `<span>🛒 Bought: ${formatDate(item.purchaseDate)}</span>` : ''}
           ${item.lastService ? `<span>🔧 Serviced: ${formatDate(item.lastService)}</span>` : ''}
           ${item.serial ? `<span>🔢 S/N: ${escapeHTML(item.serial)}</span>` : ''}
-          ${item.reminders?.length ? `<span>🔔 ${item.reminders.length} reminder${item.reminders.length !== 1 ? 's' : ''}</span>` : ''}
+          ${item.reminders?.length ? (() => {
+            const sorted = [...item.reminders].sort((a, b) => b.days - a.days);
+            const rows = sorted.map(r => `<div class="reminder-popup-row">⏰ ${r.days} day${r.days !== 1 ? 's' : ''} before service</div>`).join('');
+            const n = item.reminders.length;
+            return `<button class="reminder-indicator" onclick="toggleReminderPopup(event,'${item.id}')" title="View reminders">🔔 ${n} reminder${n !== 1 ? 's' : ''}<div class="reminder-popup" id="reminder-popup-${item.id}"><div class="reminder-popup-header">Email Reminders</div>${rows}</div></button>`;
+          })() : ''}
         </div>
-        ${item.nextService ? `<div class="gear-item-meta">${serviceStatus(item.nextService, item.category)}</div>` : ''}
+        ${isBroken
+          ? `<div class="gear-item-meta"><div class="repair-badge">🔴 In Need of Repair</div></div>`
+          : (item.nextService ? `<div class="gear-item-meta">${serviceStatus(item.nextService, item.category)}</div>` : '')}
         ${item.notes ? `<div class="gear-item-notes">${escapeHTML(item.notes)}</div>` : ''}
       </div>
       <div class="gear-item-actions" onclick="event.stopPropagation()">
@@ -428,6 +435,23 @@ function markServiced(id) {
   saveGear();
   updateUI();
 }
+
+// ── Reminder popup ────────────────────────────────────────────────────────────
+
+function toggleReminderPopup(event, itemId) {
+  event.stopPropagation();
+  const popup = document.getElementById('reminder-popup-' + itemId);
+  if (!popup) return;
+  const wasOpen = popup.classList.contains('open');
+  // Close all open popups first
+  document.querySelectorAll('.reminder-popup.open').forEach(p => p.classList.remove('open'));
+  if (!wasOpen) popup.classList.add('open');
+}
+
+// Close reminder popups when clicking anywhere outside
+document.addEventListener('click', () => {
+  document.querySelectorAll('.reminder-popup.open').forEach(p => p.classList.remove('open'));
+});
 
 function deleteItem(id) {
   if (!confirm('Remove this item from your gear list?')) return;
