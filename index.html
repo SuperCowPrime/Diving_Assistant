@@ -15,7 +15,7 @@
   <div id="auth-screen">
     <div class="auth-card">
       <div class="auth-logo">
-        <h1>🤿 Dive Gear Manager</h1>
+        <h1>🤿 Dive Gear <em>Manager</em></h1>
         <p>Your personal scuba equipment tracker</p>
       </div>
 
@@ -79,13 +79,20 @@
   <!-- ── App Screen ────────────────────────────────────────────────── -->
   <div id="app-screen" class="hidden">
     <header>
-      <h1>🤿 Dive Gear Manager</h1>
+      <h1>🤿 Dive Gear <em>Manager</em></h1>
       <p class="subtitle">Track and manage your scuba equipment</p>
       <div class="header-user">
         <span>👤 <span id="user-display"></span></span>
         <button id="logout-btn">Log Out</button>
       </div>
     </header>
+
+    <!-- ── Wave divider ──────────────────────────────────────────────── -->
+    <div class="wave-divider" aria-hidden="true">
+      <svg viewBox="0 0 1440 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,32 C240,56 480,8 720,28 C960,48 1200,12 1440,32 L1440,48 L0,48 Z" fill="#0a2342"/>
+      </svg>
+    </div>
 
     <!-- ── App tab navigation ──────────────────────────────────────── -->
     <nav class="app-tab-nav">
@@ -99,7 +106,8 @@
 
       <!-- Profiles -->
       <section class="card" id="profiles-section">
-        <h2>Profiles</h2>
+        <span class="eyebrow">Diver Profiles</span>
+        <h2>Your <em>Profiles</em></h2>
         <div id="profile-chips" class="profile-chips"></div>
         <div class="profile-add-row">
           <input type="text" id="new-profile-name" placeholder="New profile name…" maxlength="30"
@@ -111,7 +119,8 @@
 
       <!-- Add Equipment Form -->
       <section class="card" id="add-section">
-        <h2 id="add-section-title">Add Equipment</h2>
+        <span class="eyebrow">Gear Catalogue</span>
+        <h2 id="add-section-title">Add <em>Equipment</em></h2>
         <form id="gear-form">
 
           <div class="form-row">
@@ -243,8 +252,9 @@
 
       <!-- Gear List -->
       <section class="card" id="gear-section">
+        <span class="eyebrow">Equipment List</span>
         <div class="section-header">
-          <h2>My Gear <span id="gear-count" class="badge">0</span></h2>
+          <h2>My <em>Gear</em> <span id="gear-count" class="badge">0</span></h2>
           <input type="text" id="search" placeholder="Search gear..." class="search-input" />
         </div>
         <div id="profile-filter" class="profile-filter"></div>

@@ -92,6 +92,19 @@ Diving_Assistant/
 
 ## Changelog
 
+### v1.2 — L2 Adventure Design System
+- New **Instrument Serif** display font paired with **Manrope** body font (loaded from Google Fonts)
+- **Sunset gradient** header with layered radial-ray highlights and a subtle grain texture
+- **SVG wave divider** bridges the header into the navigation bar
+- **Coral CTA** — primary buttons, active tab underline, badge, and auth submit button now use reef-coral (`#ff7a59`) instead of teal
+- **Softer cards** — increased border-radius (16 px / 14 px) and lighter shadow
+- **Left-edge hover stripe** on gear cards — coral → seafoam gradient animates up on hover with a 1 px lift
+- **Eyebrow labels** above each section heading (Diver Profiles, Gear Catalogue, Equipment List) with a coral hairline
+- **Italic accents** in headings via `<em>` — Instrument Serif renders `Manager`, `Profiles`, `Equipment`, and `Gear` in italic for emphasis
+- **Modal header** updated to the sunset gradient; maintenance step numbers now coral
+- **Sand-tone page background** (`#f4ead3`) replaces the light-blue background for a warmer, adventure feel
+- Auth screen login/register updated with matching gradient, coral submit button, and coral active-tab indicator
+
 ### v1.1 — Dive Map
 - New **Dive Map** tab in the top navigation alongside Equipment
 - Interactive map (Leaflet + OpenStreetMap) showing dive shops, dive centres, and dive sites near you
