@@ -1,71 +1,170 @@
 .hidden { display: none !important; }
 
-/* Auth screen */
+/* ── Auth screen ─────────────────────────────────────────────────────────── */
+
 #auth-screen {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--gradient-sunset);
-  padding: 20px;
+  padding: 24px;
+  position: relative;
+  isolation: isolate;
+}
+
+#auth-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--rays-soft);
+  mix-blend-mode: screen;
+  z-index: -1;
+}
+
+#auth-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--grain-overlay);
+  opacity: .35;
+  mix-blend-mode: overlay;
+  z-index: -1;
+}
+
+/* Bubble overlay at base of screen */
+.auth-bubbles {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 220px;
+  pointer-events: none;
+  opacity: .5;
+  background: radial-gradient(ellipse 80% 40% at 50% 100%, rgba(77,208,193,.25), transparent 70%);
+  z-index: 0;
 }
 
 .auth-card {
   background: var(--white);
   border-radius: var(--radius);
-  box-shadow: 0 8px 40px rgba(10,35,66,.35);
+  box-shadow: var(--shadow-deep);
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Auth logo (abyssal hero) ─────────────────────────────────────────────── */
+
+.auth-logo {
+  background: var(--gradient-abyss);
+  color: var(--white);
+  text-align: center;
+  padding: 34px 24px 56px;
+  position: relative;
+  isolation: isolate;
   overflow: hidden;
 }
 
-.auth-logo {
-  background: var(--gradient-sunset);
-  color: var(--white);
-  text-align: center;
-  padding: 28px 24px 20px;
+.auth-logo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--rays-soft);
+  mix-blend-mode: screen;
+}
+
+.auth-logo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grain-overlay);
+  opacity: .4;
+  mix-blend-mode: overlay;
+}
+
+/* All children above the texture layers */
+.auth-logo > * { position: relative; z-index: 1; }
+
+.auth-eyebrow {
+  font-family: var(--font-body);
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--reef-coral);
 }
 
 .auth-logo h1 {
   font-family: var(--font-display);
-  font-size: 1.8rem;
   font-weight: 400;
+  font-size: 2.4rem;
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+  margin-top: 8px;
 }
 
-.auth-logo h1 em {
+.auth-logo h1 .em {
   font-style: italic;
-  color: #ffb8a0;
 }
 
-.auth-logo p  { opacity: .8; font-size: .9rem; margin-top: 4px; font-family: var(--font-body); }
+.auth-logo p {
+  opacity: .85;
+  font-size: .88rem;
+  margin-top: 10px;
+  font-family: var(--font-body);
+}
 
-/* Tabs */
+/* Wave at bottom of auth logo — fills with white (card body colour) */
+.auth-wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 36px;
+  color: var(--white);
+  display: block;
+}
+
+.auth-wave svg { width: 100%; height: 100%; display: block; }
+
+/* ── Auth tabs ────────────────────────────────────────────────────────────── */
+
 .auth-tabs {
   display: flex;
-  border-bottom: 2px solid var(--blue-pale);
+  border-bottom: 1px solid #e8eef4;
+  padding-top: 8px;
 }
 
 .auth-tab {
   flex: 1;
-  padding: 13px;
+  padding: 14px 0;
   border: none;
   background: none;
-  font-size: .95rem;
+  font-family: var(--font-body);
+  font-size: .92rem;
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
   transition: color .15s, box-shadow .15s;
+  letter-spacing: .02em;
 }
 
 .auth-tab.active {
-  color: var(--reef-coral);
+  color: var(--ocean);
   box-shadow: inset 0 -2px 0 var(--reef-coral);
 }
 
-.auth-tab:hover:not(.active) { background: var(--blue-pale); }
+.auth-tab:hover:not(.active) { color: var(--current); }
 
-/* Forms */
-.auth-form-section { padding: 24px; }
+/* ── Auth form ────────────────────────────────────────────────────────────── */
+
+.auth-form-section { padding: 28px 28px 32px; }
 
 .auth-form-section .form-group {
   display: flex;
@@ -75,65 +174,71 @@
 }
 
 .auth-form-section label {
-  font-size: .85rem;
-  font-weight: 600;
-  color: var(--blue-deep);
+  font-family: var(--font-body);
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--current);
 }
 
 .auth-form-section input {
-  padding: 10px 12px;
-  border: 1.5px solid #c5d8e8;
-  border-radius: 6px;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border-input);
+  border-radius: 8px;
   font-size: .95rem;
-  background: #f8fbfd;
-  transition: border-color .2s;
+  background: var(--surface-input);
+  transition: border-color .2s, background .2s;
+  font-family: inherit;
+  color: var(--text);
 }
 
 .auth-form-section input:focus {
   outline: none;
-  border-color: var(--blue-light);
+  border-color: var(--shallow);
   background: var(--white);
+  box-shadow: 0 0 0 3px rgba(46,134,193,.12);
 }
 
 .auth-submit {
   width: 100%;
-  padding: 11px;
-  background: var(--reef-coral);
+  padding: 13px;
+  background: var(--gradient-coral);
   color: var(--white);
   border: none;
-  border-radius: 6px;
-  font-size: 1rem;
+  border-radius: 8px;
+  font-size: .95rem;
   font-weight: 700;
+  letter-spacing: .04em;
   cursor: pointer;
-  transition: background .2s, transform .1s;
-  margin-top: 4px;
-  box-shadow: 0 2px 10px rgba(255,122,89,.3);
+  transition: transform .1s, box-shadow .2s;
+  margin-top: 8px;
+  font-family: inherit;
+  box-shadow: 0 4px 14px rgba(255,122,89,.32);
 }
 
-.auth-submit:hover  { background: var(--reef-coral-dim); }
+.auth-submit:hover  { box-shadow: 0 6px 18px rgba(255,122,89,.42); }
 .auth-submit:active { transform: scale(.985); }
 
 .auth-error   { color: var(--danger); font-size: .85rem; margin-top: 10px; min-height: 18px; }
 .auth-success { color: #1e8449;       font-size: .85rem; margin-top: 10px; min-height: 18px; }
 
-/* Password reveal toggle */
+/* ── Password reveal toggle ───────────────────────────────────────────────── */
+
 .pw-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.pw-wrapper input {
-  flex: 1;
-  padding-right: 40px;
-}
+.pw-wrapper input { flex: 1; padding-right: 42px; }
 
 .pw-toggle {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
-  width: 38px;
+  width: 42px;
   background: none;
   border: none;
   cursor: pointer;
@@ -147,29 +252,3 @@
 }
 
 .pw-toggle:hover { opacity: 1; }
-
-/* Header user info */
-.header-user {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 10px;
-  font-size: .88rem;
-  opacity: .9;
-}
-
-#user-display { font-weight: 700; }
-
-#logout-btn {
-  background: rgba(255,255,255,.15);
-  border: 1px solid rgba(255,255,255,.3);
-  color: var(--white);
-  padding: 4px 14px;
-  border-radius: 999px;
-  font-size: .82rem;
-  cursor: pointer;
-  transition: background .15s;
-}
-
-#logout-btn:hover { background: rgba(255,255,255,.28); }

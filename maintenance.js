@@ -208,8 +208,8 @@ function openModal(id) {
 
   const info = MAINTENANCE[item.category] || MAINTENANCE['Other'];
 
-  document.getElementById('modal-title').textContent = `${info.icon} ${item.name}`;
-  document.getElementById('modal-category').textContent = `${item.category} — Maintenance Guide`;
+  document.getElementById('modal-title').textContent = item.name;
+  document.getElementById('modal-category').textContent = `🔧 Care & Maintenance · ${item.category}`;
 
   document.getElementById('modal-body').innerHTML = `
     <ol class="maintenance-steps">

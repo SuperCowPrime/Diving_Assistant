@@ -13,10 +13,18 @@
 
   <!-- ── Auth Screen ───────────────────────────────────────────────── -->
   <div id="auth-screen">
+    <div class="auth-bubbles" aria-hidden="true"></div>
     <div class="auth-card">
       <div class="auth-logo">
-        <h1>🤿 Dive Gear <em>Manager</em></h1>
+        <div class="auth-eyebrow">🤿&nbsp;&nbsp;Expedition Kit</div>
+        <h1>Dive Gear <span class="em">Manager</span></h1>
         <p>Your personal scuba equipment tracker</p>
+        <!-- Wave cuts the dark logo into the white card body -->
+        <div class="auth-wave" aria-hidden="true">
+          <svg viewBox="0 0 1200 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,46 C150,84 360,8 600,40 C840,72 1050,8 1200,46 L1200,80 L0,80 Z" fill="currentColor"/>
+          </svg>
+        </div>
       </div>
 
       <div class="auth-tabs">
@@ -78,26 +86,31 @@
 
   <!-- ── App Screen ────────────────────────────────────────────────── -->
   <div id="app-screen" class="hidden">
-    <header>
-      <h1>🤿 Dive Gear <em>Manager</em></h1>
-      <p class="subtitle">Track and manage your scuba equipment</p>
-      <div class="header-user">
-        <span>👤 <span id="user-display"></span></span>
-        <button id="logout-btn">Log Out</button>
+    <header class="app-header">
+      <div class="app-header-inner">
+        <div>
+          <div class="app-header-eyebrow">🤿&nbsp;&nbsp;Expedition Kit · Logbook</div>
+          <h1>Dive Gear <span class="em">Manager</span></h1>
+          <p class="subtitle">Track every piece of kit, every service window, every dive site within reach.</p>
+        </div>
+        <div class="header-user">
+          <span>👤 <span id="user-display"></span></span>
+          <span class="sep" aria-hidden="true"></span>
+          <button id="logout-btn">Log Out</button>
+        </div>
+      </div>
+      <!-- Wave carves the hero edge — fills with page background colour -->
+      <div class="header-wave" aria-hidden="true">
+        <svg viewBox="0 0 1200 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,46 C200,84 360,8 600,42 C840,76 1050,12 1200,46 L1200,80 L0,80 Z" fill="currentColor"/>
+        </svg>
       </div>
     </header>
 
-    <!-- ── Wave divider ──────────────────────────────────────────────── -->
-    <div class="wave-divider" aria-hidden="true">
-      <svg viewBox="0 0 1440 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,32 C240,56 480,8 720,28 C960,48 1200,12 1440,32 L1440,48 L0,48 Z" fill="#0a2342"/>
-      </svg>
-    </div>
-
-    <!-- ── App tab navigation ──────────────────────────────────────── -->
+    <!-- ── App tab navigation — floating pill capsules ────────────── -->
     <nav class="app-tab-nav">
-      <button class="app-tab active" data-tab="equipment" onclick="switchAppTab('equipment')">🗂 Equipment</button>
-      <button class="app-tab" data-tab="map" onclick="switchAppTab('map')">🗺 Dive Map</button>
+      <button class="app-tab active" data-tab="equipment" onclick="switchAppTab('equipment')"><span class="ic">🗂</span> Equipment</button>
+      <button class="app-tab" data-tab="map" onclick="switchAppTab('map')"><span class="ic">🗺</span> Dive Map</button>
     </nav>
 
     <!-- ── Equipment pane ──────────────────────────────────────────── -->
@@ -106,8 +119,8 @@
 
       <!-- Profiles -->
       <section class="card" id="profiles-section">
-        <span class="eyebrow">Diver Profiles</span>
-        <h2>Your <em>Profiles</em></h2>
+        <div class="card-eyebrow">Diver Profiles</div>
+        <h2>Your <span class="em">Profiles</span></h2>
         <div id="profile-chips" class="profile-chips"></div>
         <div class="profile-add-row">
           <input type="text" id="new-profile-name" placeholder="New profile name…" maxlength="30"
@@ -119,8 +132,8 @@
 
       <!-- Add Equipment Form -->
       <section class="card" id="add-section">
-        <span class="eyebrow">Gear Catalogue</span>
-        <h2 id="add-section-title">Add <em>Equipment</em></h2>
+        <div class="card-eyebrow">Gear Catalogue</div>
+        <h2 id="add-section-title">Add <span class="em">Equipment</span></h2>
         <form id="gear-form">
 
           <div class="form-row">
@@ -252,9 +265,9 @@
 
       <!-- Gear List -->
       <section class="card" id="gear-section">
-        <span class="eyebrow">Equipment List</span>
+        <div class="card-eyebrow">Equipment List</div>
         <div class="section-header">
-          <h2>My <em>Gear</em> <span id="gear-count" class="badge">0</span></h2>
+          <h2>My <span class="em">Gear</span> <span id="gear-count" class="badge">0</span></h2>
           <input type="text" id="search" placeholder="Search gear..." class="search-input" />
         </div>
         <div id="profile-filter" class="profile-filter"></div>
@@ -290,11 +303,18 @@
     <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
       <div class="modal">
         <div class="modal-header">
-          <div>
-            <h2 id="modal-title"></h2>
-            <p id="modal-category" class="modal-category"></p>
+          <div class="modal-header-inner">
+            <div>
+              <div class="modal-eyebrow" id="modal-category">🔧 Care &amp; Maintenance</div>
+              <h2 id="modal-title"></h2>
+            </div>
+            <button class="modal-close" onclick="closeModal()" title="Close">&times;</button>
           </div>
-          <button class="modal-close" onclick="closeModal()" title="Close">&times;</button>
+          <div class="modal-wave" aria-hidden="true">
+            <svg viewBox="0 0 1200 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0,46 C200,84 360,8 600,42 C840,76 1050,12 1200,46 L1200,80 L0,80 Z" fill="currentColor"/>
+            </svg>
+          </div>
         </div>
         <div id="modal-body" class="modal-body"></div>
       </div>

@@ -329,7 +329,7 @@ function startEdit(id) {
   formReminders = (item.reminders || []).map(r => ({ ...r }));
   renderFormReminders();
 
-  document.getElementById('add-section-title').innerHTML = 'Edit <em>Equipment</em>';
+  document.getElementById('add-section-title').innerHTML = 'Edit <span class="em">Equipment</span>';
   document.getElementById('submit-btn').textContent = 'Save Changes';
   document.getElementById('cancel-edit-btn').classList.remove('hidden');
   document.getElementById('add-section').classList.add('editing');
@@ -345,7 +345,7 @@ function cancelEdit() {
   updateProfileSelect();
   formReminders = [];
   renderFormReminders();
-  document.getElementById('add-section-title').innerHTML = 'Add <em>Equipment</em>';
+  document.getElementById('add-section-title').innerHTML = 'Add <span class="em">Equipment</span>';
   document.getElementById('submit-btn').textContent = 'Add to Gear List';
   document.getElementById('cancel-edit-btn').classList.add('hidden');
   document.getElementById('add-section').classList.remove('editing');
