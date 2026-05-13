@@ -176,6 +176,12 @@ function renderMarkers() {
     const website = tags.website || tags['contact:website'] || tags.url || '';
     const hours   = tags.opening_hours || '';
 
+    // Build a useful copy string: name + address if available, else name + coords.
+    const copyText = addr
+      ? `${name}, ${addr}`
+      : `${name} (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
+    const copyEncoded = encodeURIComponent(copyText);
+
     const popup = `
       <div class="map-popup">
         <div class="map-popup-name">${esc(name)}</div>
@@ -184,6 +190,10 @@ function renderMarkers() {
         ${phone   ? `<div class="map-popup-row">📞 ${esc(phone)}</div>`  : ''}
         ${hours   ? `<div class="map-popup-row">🕐 ${esc(hours)}</div>`  : ''}
         ${website ? `<div class="map-popup-row">🌐 <a href="${esc(website)}" target="_blank" rel="noopener noreferrer">Visit website</a></div>` : ''}
+        <div class="map-popup-actions">
+          <button class="map-copy-btn" onclick="copyMapAddress(this,'${copyEncoded}')">📋 Copy address</button>
+          <a class="map-nav-link" href="https://www.google.com/maps?q=${lat},${lon}" target="_blank" rel="noopener noreferrer">🗺 Navigate</a>
+        </div>
       </div>`;
 
     const marker = L.marker([lat, lon], { icon: makeIcon(type) })
@@ -248,6 +258,17 @@ function mapLocateMe() {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+function copyMapAddress(btn, encoded) {
+  const text = decodeURIComponent(encoded);
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => { btn.textContent = '📋 Copy address'; }, 2000);
+  }).catch(() => {
+    // Clipboard API unavailable — fall back to prompt so user can copy manually.
+    window.prompt('Copy this address:', text);
+  });
+}
 
 function setMapStatus(msg) {
   const el = document.getElementById('map-status');
