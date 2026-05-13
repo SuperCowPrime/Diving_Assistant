@@ -541,7 +541,8 @@ textarea { resize: vertical; }
   transition: transform .15s, box-shadow .2s, border-color .2s;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
+  /* No overflow:hidden — lets reminder popup escape the card boundary.
+     The ::before stripe uses its own border-radius to match the card corners. */
 }
 
 /* Left-edge gradient stripe — opacity reveals on hover */
@@ -555,6 +556,7 @@ textarea { resize: vertical; }
   background: var(--gradient-shallow);
   opacity: 0;
   transition: opacity .2s;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
 }
 
 .gear-item:hover {
@@ -573,6 +575,7 @@ textarea { resize: vertical; }
 .gear-item.broken::before {
   background: var(--reef-coral);
   opacity: 1;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
 }
 
 .gear-item.broken:hover {
@@ -791,6 +794,7 @@ textarea { resize: vertical; }
   inset: 0;
   background: var(--rays-soft);
   mix-blend-mode: screen;
+  pointer-events: none;
 }
 
 .modal-header::after {
@@ -800,6 +804,7 @@ textarea { resize: vertical; }
   background: var(--grain-overlay);
   opacity: .4;
   mix-blend-mode: overlay;
+  pointer-events: none;
 }
 
 .modal-header-inner {
