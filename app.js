@@ -206,7 +206,7 @@ function escapeHTML(str) {
 }
 
 function conditionClass(condition) {
-  return 'condition-' + condition.replace(/\s+/g, '-');
+  return 'condition-' + condition.replace(/[\s/]+/g, '-');
 }
 
 function serviceStatus(nextService, category) {
@@ -261,8 +261,9 @@ function renderGear(items) {
 
   gearList.innerHTML = items.map(item => {
     const profileName = getProfileName(item.profileId);
+    const isBroken = item.condition === 'Broken/Malfunction';
     return `
-    <div class="gear-item" data-id="${item.id}" onclick="openModal('${item.id}')" title="Click for maintenance guide">
+    <div class="gear-item${isBroken ? ' broken' : ''}" data-id="${item.id}" onclick="openModal('${item.id}')" title="Click for maintenance guide">
       <div class="gear-item-main">
         <div class="gear-item-title">
           ${escapeHTML(item.name)}
@@ -421,7 +422,7 @@ function markServiced(id) {
   const today = new Date().toISOString().split('T')[0];
   item.lastService = today;
   item.nextService = calcNextService(item.category, today, item.purchaseDate);
-  if (item.condition === 'Needs Service') item.condition = 'Good';
+  if (item.condition === 'Needs Service' || item.condition === 'Broken/Malfunction') item.condition = 'Good';
   // Reset reminder "sent" flags so they fire again in the new service cycle.
   if (item.reminders) item.reminders.forEach(r => { r.lastSentForService = null; });
   saveGear();
@@ -455,6 +456,14 @@ form.addEventListener('submit', e => {
   };
 
   if (editingId) {
+    const oldItem = gear.find(g => g.id === editingId);
+    // If the item was broken and is now being marked as something else,
+    // start the service countdown fresh from today.
+    if (oldItem?.condition === 'Broken/Malfunction' && fields.condition !== 'Broken/Malfunction') {
+      const today = new Date().toISOString().split('T')[0];
+      fields.lastService = today;
+      fields.nextService = calcNextService(fields.category, today, fields.purchaseDate);
+    }
     const idx = gear.findIndex(g => g.id === editingId);
     if (idx !== -1) gear[idx] = { ...gear[idx], ...fields };
     saveGear();
