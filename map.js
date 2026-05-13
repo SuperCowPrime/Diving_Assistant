@@ -1,13 +1,17 @@
 // ── Dive Map ──────────────────────────────────────────────────────────────────
 
-const OVERPASS_URL  = 'https://overpass-api.de/api/interpreter';
+// Two public Overpass endpoints — try in order if one is busy/down.
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+];
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 
-let mapInstance    = null;   // Leaflet map object
-let allFeatures    = [];     // raw results from last Overpass fetch
-let mapMarkers     = [];     // active Leaflet markers
-let activeMapFilter = 'all'; // 'all' | 'shop' | 'site'
-let fetchController = null;  // AbortController for in-flight requests
+let mapInstance     = null;
+let allFeatures     = [];
+let mapMarkers      = [];
+let activeMapFilter = 'all'; // 'all' | 'shop' | 'site' | 'workshop'
+let fetchController = null;
 let moveTimer       = null;
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
@@ -20,7 +24,6 @@ function switchAppTab(tab) {
   );
   if (tab === 'map') {
     initMap();
-    // Leaflet needs a size recalculation after the pane becomes visible.
     setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 120);
   }
 }
@@ -39,9 +42,8 @@ function initMap() {
 
   mapInstance.on('moveend', () => {
     clearTimeout(moveTimer);
-    // Only auto-fetch when zoomed in enough to get useful results.
     if (mapInstance.getZoom() >= 9) {
-      moveTimer = setTimeout(fetchFromMapCenter, 600);
+      moveTimer = setTimeout(fetchFromMapCenter, 700);
     }
   });
 
@@ -53,16 +55,14 @@ function initMap() {
         mapInstance.setView([lat, lon], 12);
         fetchDiveLocations(lat, lon);
       },
-      () => {
-        setMapStatus('Location access denied. Search for a place above.');
-      }
+      () => setMapStatus('Location access denied — search for a place above.')
     );
   } else {
-    setMapStatus('Geolocation not supported. Search for a place above.');
+    setMapStatus('Geolocation not supported — search for a place above.');
   }
 }
 
-// ── Overpass queries ──────────────────────────────────────────────────────────
+// ── Overpass query ────────────────────────────────────────────────────────────
 
 function fetchFromMapCenter() {
   const c = mapInstance.getCenter();
@@ -70,9 +70,8 @@ function fetchFromMapCenter() {
 }
 
 async function fetchDiveLocations(lat, lon) {
-  setMapStatus('Searching…');
+  setMapStatus('Loading dive locations…');
 
-  // Cancel any previous in-flight request.
   if (fetchController) fetchController.abort();
   fetchController = new AbortController();
 
@@ -82,88 +81,108 @@ async function fetchDiveLocations(lat, lon) {
 (
   node["sport"="diving"](around:${radius},${lat},${lon});
   way["sport"="diving"](around:${radius},${lat},${lon});
+  node["sport"="scuba_diving"](around:${radius},${lat},${lon});
   node["shop"="scuba_diving"](around:${radius},${lat},${lon});
   node["shop"="diving"](around:${radius},${lat},${lon});
   node["leisure"="dive_centre"](around:${radius},${lat},${lon});
   node["amenity"="dive_centre"](around:${radius},${lat},${lon});
   node["tourism"="dive_site"](around:${radius},${lat},${lon});
-  node["sport"="scuba_diving"](around:${radius},${lat},${lon});
+  node["craft"="diver"](around:${radius},${lat},${lon});
+  node["repair"="scuba"](around:${radius},${lat},${lon});
+  node["repair"="diving_equipment"](around:${radius},${lat},${lon});
 );
-out center;
-  `.trim();
+out center;`.trim();
 
-  try {
-    const res = await fetch(OVERPASS_URL, {
-      method:  'POST',
-      body:    'data=' + encodeURIComponent(query),
-      signal:  fetchController.signal,
-    });
-    const data = await res.json();
-    allFeatures = data.elements || [];
-    renderMarkers();
-  } catch (err) {
-    if (err.name !== 'AbortError') {
-      setMapStatus('Could not load locations — check your connection.');
-      console.error('[Dive Map] Overpass error:', err);
+  // Try each Overpass endpoint in order.
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      const res = await fetch(endpoint, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body:    'data=' + encodeURIComponent(query),
+        signal:  fetchController.signal,
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      allFeatures = data.elements || [];
+      renderMarkers();
+      return; // success — stop trying other endpoints
+    } catch (err) {
+      if (err.name === 'AbortError') return; // user navigated away
+      console.warn('[Dive Map] endpoint failed:', endpoint, err.message);
+      // fall through to try the next endpoint
     }
   }
+
+  setMapStatus('Could not load locations — both map servers are unavailable. Try again in a moment.');
+}
+
+// ── Classification & icons ────────────────────────────────────────────────────
+
+function classifyFeature(tags) {
+  if (tags.craft === 'diver' || tags.repair === 'scuba' || tags.repair === 'diving_equipment') {
+    return 'workshop';
+  }
+  if (
+    tags.tourism === 'dive_site' ||
+    (tags.sport === 'diving' && !tags.shop && !tags.leisure && !tags.amenity && !tags.craft)
+  ) {
+    return 'site';
+  }
+  return 'shop';
+}
+
+const TYPE_META = {
+  shop:     { emoji: '🏪', label: '🏪 Dive Shop / Centre',  cls: 'map-marker-shop'     },
+  site:     { emoji: '🤿', label: '🤿 Dive Site',            cls: 'map-marker-site'     },
+  workshop: { emoji: '🔧', label: '🔧 Dive Equipment Workshop', cls: 'map-marker-workshop' },
+};
+
+function makeIcon(type) {
+  const meta = TYPE_META[type] || TYPE_META.shop;
+  return L.divIcon({
+    className:   '',
+    html:        `<div class="map-marker ${meta.cls}">${meta.emoji}</div>`,
+    iconSize:    [36, 36],
+    iconAnchor:  [18, 36],
+    popupAnchor: [0, -38],
+  });
 }
 
 // ── Marker rendering ──────────────────────────────────────────────────────────
 
-function classifyFeature(tags) {
-  if (
-    tags.tourism === 'dive_site' ||
-    (tags.sport === 'diving' && !tags.shop && !tags.leisure && !tags.amenity)
-  ) return 'site';
-  return 'shop';
-}
-
-function makeIcon(type) {
-  const emoji = type === 'site' ? '🤿' : '🏪';
-  const cls   = type === 'site' ? 'map-marker-site' : 'map-marker-shop';
-  return L.divIcon({
-    className: '',
-    html: `<div class="map-marker ${cls}">${emoji}</div>`,
-    iconSize:   [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor:[0, -36],
-  });
-}
-
 function renderMarkers() {
-  // Remove old markers.
   mapMarkers.forEach(m => mapInstance.removeLayer(m));
   mapMarkers = [];
 
-  const visible = allFeatures.filter(el => {
-    const type = classifyFeature(el.tags || {});
-    return activeMapFilter === 'all' || activeMapFilter === type;
-  });
+  allFeatures.forEach(el => {
+    const tags = el.tags || {};
+    const type = classifyFeature(tags);
 
-  visible.forEach(el => {
-    const lat  = el.lat  ?? el.center?.lat;
-    const lon  = el.lon  ?? el.center?.lon;
+    if (activeMapFilter !== 'all' && activeMapFilter !== type) return;
+
+    const lat = el.lat ?? el.center?.lat;
+    const lon = el.lon ?? el.center?.lon;
     if (lat == null || lon == null) return;
 
-    const tags      = el.tags || {};
-    const type      = classifyFeature(tags);
-    const name      = tags.name || tags['name:en'] || 'Unnamed location';
-    const typeLabel = type === 'site' ? '🤿 Dive Site' : '🏪 Dive Shop / Centre';
-    const addr      = [tags['addr:street'], tags['addr:housenumber'],
-                       tags['addr:city'],   tags['addr:country']]
-                       .filter(Boolean).join(' ');
-    const phone     = tags.phone    || tags['contact:phone']   || '';
-    const website   = tags.website  || tags['contact:website'] || tags.url || '';
-    const hours     = tags.opening_hours || '';
+    const meta    = TYPE_META[type] || TYPE_META.shop;
+    const name    = tags.name || tags['name:en'] || 'Unnamed location';
+    const addr    = [tags['addr:street'], tags['addr:housenumber'],
+                     tags['addr:city'],   tags['addr:country']]
+                     .filter(Boolean).join(' ');
+    const phone   = tags.phone   || tags['contact:phone']   || '';
+    const website = tags.website || tags['contact:website'] || tags.url || '';
+    const hours   = tags.opening_hours || '';
 
     const popup = `
       <div class="map-popup">
         <div class="map-popup-name">${esc(name)}</div>
-        <div class="map-popup-type">${typeLabel}</div>
-        ${addr    ? `<div class="map-popup-row">📍 ${esc(addr)}</div>`    : ''}
-        ${phone   ? `<div class="map-popup-row">📞 ${esc(phone)}</div>`   : ''}
-        ${hours   ? `<div class="map-popup-row">🕐 ${esc(hours)}</div>`   : ''}
+        <div class="map-popup-type">${meta.label}</div>
+        ${addr    ? `<div class="map-popup-row">📍 ${esc(addr)}</div>`   : ''}
+        ${phone   ? `<div class="map-popup-row">📞 ${esc(phone)}</div>`  : ''}
+        ${hours   ? `<div class="map-popup-row">🕐 ${esc(hours)}</div>`  : ''}
         ${website ? `<div class="map-popup-row">🌐 <a href="${esc(website)}" target="_blank" rel="noopener noreferrer">Visit website</a></div>` : ''}
       </div>`;
 
@@ -176,8 +195,8 @@ function renderMarkers() {
   const n = mapMarkers.length;
   setMapStatus(
     n === 0
-      ? 'No locations found in this area. Try zooming out or searching elsewhere.'
-      : `Showing ${n} location${n !== 1 ? 's' : ''} — click a pin for details.`
+      ? 'No locations found here — try zooming out or searching a different area.'
+      : `${n} location${n !== 1 ? 's' : ''} found — click a pin for details.`
   );
 }
 
@@ -196,14 +215,14 @@ function setMapFilter(filter) {
 async function mapSearch() {
   const q = document.getElementById('map-search-input').value.trim();
   if (!q) return;
-  setMapStatus('Searching for "' + esc(q) + '"…');
+  setMapStatus(`Searching for "${esc(q)}"…`);
   try {
     const res  = await fetch(
       `${NOMINATIM_URL}?q=${encodeURIComponent(q)}&format=json&limit=1`,
       { headers: { 'Accept-Language': 'en' } }
     );
     const data = await res.json();
-    if (!data.length) { setMapStatus('Place not found. Try a different search.'); return; }
+    if (!data.length) { setMapStatus('Place not found — try a different search.'); return; }
     const { lat, lon } = data[0];
     mapInstance.setView([parseFloat(lat), parseFloat(lon)], 12);
     fetchDiveLocations(lat, lon);
